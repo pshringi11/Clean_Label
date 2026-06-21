@@ -2,8 +2,7 @@ import streamlit as st
 import json
 import os
 import base64
-from google import genai
-from google.genai import types
+import requests
 from PIL import Image
 import io
 
@@ -121,66 +120,139 @@ with st.sidebar:
                     "parts": [{"text": f"Refreshed analysis for {hist['data']['productName']}. Ask me any question about the alternatives!"}]
                 }]
 
-# Helper function to get Google GenAI client
-def get_client(api_key: str):
-    if not api_key:
-        st.error("Please configure your GEMINI_API_KEY in the sidebar to start scanning!")
-        return None
-    return genai.Client(api_key=api_key)
+# Helper function to call Gemini API directly via requests
+def call_gemini_api(api_key: str, model: str, system_instruction: str, contents_parts: list, response_schema: dict = None) -> str:
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+    headers = {
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "contents": [
+            {
+                "parts": contents_parts
+            }
+        ],
+        "systemInstruction": {
+            "parts": [
+                {
+                    "text": system_instruction
+                }
+            ]
+        }
+    }
+    
+    if response_schema:
+        payload["generationConfig"] = {
+            "responseMimeType": "application/json",
+            "responseSchema": response_schema
+        }
+        
+    response = requests.post(url, headers=headers, json=payload)
+    if response.status_code != 200:
+        raise Exception(f"Gemini API Error (status {response.status_code}): {response.text}")
+        
+    res_json = response.json()
+    try:
+        candidate = res_json["candidates"][0]
+        text = candidate["content"]["parts"][0]["text"]
+        return text
+    except (KeyError, IndexError):
+        raise Exception(f"Invalid API response structure: {json.dumps(res_json)}")
 
-# Analysis schema for structured decoding in Python Google GenAI SDK
-analysis_schema = types.Schema(
-    type=types.Type.OBJECT,
-    properties={
-        "productName": types.Schema(type=types.Type.STRING),
-        "hasSyntheticIngredients": types.Schema(type=types.Type.BOOLEAN),
-        "allergens": types.Schema(
-            type=types.Type.ARRAY,
-            items=types.Schema(type=types.Type.STRING)
-        ),
-        "certifications": types.Schema(
-            type=types.Type.ARRAY,
-            items=types.Schema(
-                type=types.Type.OBJECT,
-                properties={
-                    "name": types.Schema(type=types.Type.STRING),
-                    "certified": types.Schema(type=types.Type.BOOLEAN),
-                    "explanation": types.Schema(type=types.Type.STRING)
+def call_gemini_chat(api_key: str, model: str, system_instruction: str, history: list, new_user_message: str) -> str:
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+    headers = {
+        "Content-Type": "application/json"
+    }
+    
+    contents = []
+    for turn in history:
+        contents.append({
+            "role": "user" if turn["role"] == "user" else "model",
+            "parts": [{"text": turn["parts"][0]["text"]}]
+        })
+        
+    contents.append({
+        "role": "user",
+        "parts": [{"text": new_user_message}]
+    })
+    
+    payload = {
+        "contents": contents,
+        "systemInstruction": {
+            "parts": [
+                {
+                    "text": system_instruction
+                }
+            ]
+        }
+    }
+    
+    response = requests.post(url, headers=headers, json=payload)
+    if response.status_code != 200:
+        raise Exception(f"Gemini Chat API Error (status {response.status_code}): {response.text}")
+        
+    res_json = response.json()
+    try:
+        text = res_json["candidates"][0]["content"]["parts"][0]["text"]
+        return text
+    except (KeyError, IndexError):
+        raise Exception(f"Invalid API Chat response: {json.dumps(res_json)}")
+
+# Analysis Schema styled for RAW json format
+raw_analysis_schema = {
+    "type": "OBJECT",
+    "properties": {
+        "productName": {"type": "STRING"},
+        "hasSyntheticIngredients": {"type": "BOOLEAN"},
+        "allergens": {
+            "type": "ARRAY",
+            "items": {"type": "STRING"}
+        },
+        "certifications": {
+            "type": "ARRAY",
+            "items": {
+                "type": "OBJECT",
+                "properties": {
+                    "name": {"type": "STRING"},
+                    "certified": {"type": "BOOLEAN"},
+                    "explanation": {"type": "STRING"}
                 },
-                required=["name", "certified", "explanation"]
-            )
-        ),
-        "ingredients": types.Schema(
-            type=types.Type.ARRAY,
-            items=types.Schema(
-                type=types.Type.OBJECT,
-                properties={
-                    "name": types.Schema(type=types.Type.STRING),
-                    "isSynthetic": types.Schema(type=types.Type.BOOLEAN),
-                    "functionalNecessity": types.Schema(type=types.Type.STRING),
-                    "naturalAlternatives": types.Schema(
-                        type=types.Type.ARRAY,
-                        items=types.Schema(type=types.Type.STRING)
-                    ),
-                    "healthImpactLevel": types.Schema(type=types.Type.STRING),
-                    "healthImpactDetails": types.Schema(type=types.Type.STRING)
+                "required": ["name", "certified", "explanation"]
+            }
+        },
+        "ingredients": {
+            "type": "ARRAY",
+            "items": {
+                "type": "OBJECT",
+                "properties": {
+                    "name": {"type": "STRING"},
+                    "isSynthetic": {"type": "BOOLEAN"},
+                    "functionalNecessity": {"type": "STRING"},
+                    "naturalAlternatives": {
+                        "type": "ARRAY",
+                        "items": {"type": "STRING"}
+                    },
+                    "healthImpactLevel": {"type": "STRING"},
+                    "healthImpactDetails": {"type": "STRING"}
                 },
-                required=["name", "isSynthetic", "functionalNecessity", "naturalAlternatives", "healthImpactLevel", "healthImpactDetails"]
-            )
-        ),
-        "productionCostEstimation": types.Schema(
-            type=types.Type.OBJECT,
-            properties={
-                "syntheticProductionCostEstimate": types.Schema(type=types.Type.STRING),
-                "naturalProductionCostEstimate": types.Schema(type=types.Type.STRING),
-                "costIncreaseExplanation": types.Schema(type=types.Type.STRING),
-                "retailPriceImpactPercent": types.Schema(type=types.Type.NUMBER)
+                "required": ["name", "isSynthetic", "functionalNecessity", "naturalAlternatives", "healthImpactLevel", "healthImpactDetails"]
+            }
+        },
+        "productionCostEstimation": {
+            "type": "OBJECT",
+            "properties": {
+                "syntheticProductionCostEstimate": {"type": "STRING"},
+                "naturalProductionCostEstimate": {"type": "STRING"},
+                "costIncreaseExplanation": {"type": "STRING"},
+                "retailPriceImpactPercent": {"type": "NUMBER"}
             },
-            required=["syntheticProductionCostEstimate", "naturalProductionCostEstimate", "costIncreaseExplanation", "retailPriceImpactPercent"]
-        ),
-        "summaryText": types.Schema(type=types.Type.STRING)
+            "required": ["syntheticProductionCostEstimate", "naturalProductionCostEstimate", "costIncreaseExplanation", "retailPriceImpactPercent"]
+        },
+        "summaryText": {"type": "STRING"}
     },
-    required=[
+    "required": [
         "productName", 
         "hasSyntheticIngredients", 
         "allergens", 
@@ -189,7 +261,7 @@ analysis_schema = types.Schema(
         "productionCostEstimation",
         "summaryText"
     ]
-)
+}
 
 # Render main grid columns
 c1, c2 = st.columns([4, 8])
@@ -224,40 +296,43 @@ with c1:
     st.markdown("---")
     
     if st.button("🌱 Analyze Ingredients Instantly", type="primary", use_container_width=True):
-        client = get_client(api_key)
-        if client:
+        if not api_key:
+            st.error("Please configure your GEMINI_API_KEY in the sidebar control center first!")
+        else:
             with st.spinner("Executing biochemical food label analysis..."):
                 try:
-                    contents = []
+                    contents_parts = []
                     if ingredients_image:
                         buffered = io.BytesIO()
                         ingredients_image.save(buffered, format="JPEG")
                         img_bytes = buffered.getvalue()
-                        contents.append(
-                            types.Part.from_bytes(
-                                data=img_bytes,
-                                mime_type="image/jpeg"
-                            )
-                        )
-                        contents.append("Recognize ingredients from this visual packaging scan, isolate lab-made synthetic fillers/synthetic additives, identify biological alternatives, estimate wholesale production cost metrics, extract allergens and certifications.")
+                        img_b54 = base64.b64encode(img_bytes).decode("utf-8")
+                        contents_parts.append({
+                            "inlineData": {
+                                "mimeType": "image/jpeg",
+                                "data": img_b54
+                            }
+                        })
+                        contents_parts.append({
+                            "text": "Recognize ingredients from this visual packaging scan, isolate lab-made synthetic fillers/synthetic additives, identify biological alternatives, estimate wholesale production cost metrics, extract allergens and certifications."
+                        })
                     elif ingredients_text:
-                        contents.append(f"Isolate synthetic additives, identify biological alternatives, estimate production cost changes, extract allergens and certifications for the following ingredient string:\n\n{ingredients_text}")
+                        contents_parts.append({
+                            "text": f"Isolate synthetic additives, identify biological alternatives, estimate production cost changes, extract allergens and certifications for the following ingredient string:\n\n{ingredients_text}"
+                        })
                     else:
                         st.warning("Please provide either an image scan or paste label string before triggering analysis.")
-                        contents = []
                         
-                    if len(contents) > 0:
-                        response = client.models.generate_content(
-                            model="gemini-3.1-pro-preview",
-                            contents=contents,
-                            config=types.GenerateContentConfig(
-                                response_mime_type="application/json",
-                                response_schema=analysis_schema,
-                                system_instruction="You are an elite food biochemist. Identify food additives, functional purposes, suggest premium natural substitutes, evaluate health risks, compute production cost factors, and flag potential workspace certifications."
-                            )
+                    if len(contents_parts) > 0:
+                        raw_json_str = call_gemini_api(
+                            api_key=api_key,
+                            model="gemini-2.5-flash",
+                            system_instruction="You are an elite food biochemist. Identify food additives, functional purposes, suggest premium natural substitutes, evaluate health risks, compute production cost factors, and flag potential workspace certifications.",
+                            contents_parts=contents_parts,
+                            response_schema=raw_analysis_schema
                         )
                         
-                        result = json.loads(response.text)
+                        result = json.loads(raw_json_str)
                         st.session_state.active_scan = result
                         st.session_state.selected_ing = result["ingredients"][0] if result["ingredients"] else None
                         
@@ -273,6 +348,7 @@ with c1:
                             "parts": [{"text": f"Successfully parsed '{result['productName']}'! Ask me anything regarding alternatives like production costs or gut health effects."}]
                         }]
                         st.success("Analysis Complete!")
+                        st.rerun()
                 except Exception as e:
                     st.error(f"Failed parsing label: {str(e)}")
                     
@@ -297,9 +373,9 @@ with c1:
             # Append user message
             st.session_state.chat_history.append({"role": "user", "parts": [{"text": user_query}]})
             
-            # Request Gemini Chat response
-            client = get_client(api_key)
-            if client:
+            if not api_key:
+                st.error("Please configure API key first.")
+            else:
                 try:
                     with st.spinner("Connecting to biochemistry researcher database..."):
                         # Prepare context
@@ -309,17 +385,15 @@ with c1:
                         
                         Answer questions simply and beautifully, providing science-backed research without confusing jargon."""
                         
-                        chat = client.chats.create(
-                            model="gemini-3.5-flash",
-                            config=types.GenerateContentConfig(
-                                system_instruction=sys_instruction,
-                                temperature=0.75
-                            ),
-                            history=st.session_state.chat_history[:-1]
+                        assistant_reply = call_gemini_chat(
+                            api_key=api_key,
+                            model="gemini-2.5-flash",
+                            system_instruction=sys_instruction,
+                            history=st.session_state.chat_history[:-1],
+                            new_user_message=user_query
                         )
                         
-                        resp = chat.send_message(user_query)
-                        st.session_state.chat_history.append({"role": "model", "parts": [{"text": resp.text}]})
+                        st.session_state.chat_history.append({"role": "model", "parts": [{"text": assistant_reply}]})
                         st.rerun()
                 except Exception as e:
                     st.error(f"Chat error: {str(e)}")
