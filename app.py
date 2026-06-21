@@ -261,6 +261,19 @@ raw_analysis_schema = {
             },
             "required": ["syntheticProductionCostEstimate", "naturalProductionCostEstimate", "costIncreaseExplanation", "retailPriceImpactPercent"]
         },
+        "cleanerProductSuggestions": {
+            "type": "ARRAY",
+            "items": {
+                "type": "OBJECT",
+                "properties": {
+                    "name": {"type": "STRING"},
+                    "brand": {"type": "STRING"},
+                    "keyBenefits": {"type": "STRING"},
+                    "ingredientsList": {"type": "STRING"}
+                },
+                "required": ["name", "brand", "keyBenefits", "ingredientsList"]
+            }
+        },
         "summaryText": {"type": "STRING"}
     },
     "required": [
@@ -270,6 +283,7 @@ raw_analysis_schema = {
         "certifications", 
         "ingredients", 
         "productionCostEstimation",
+        "cleanerProductSuggestions",
         "summaryText"
     ]
 }
@@ -326,6 +340,20 @@ SAMPLE_PRODUCTS = {
                 "costIncreaseExplanation": "Replaced Aspartame with organic premium Stevia syrup and Class IV Caramel with organic roasted barley colorants. This increases food additive costs by approximately 250%, translating to a premium product positioning.",
                 "retailPriceImpactPercent": 25.0
             },
+            "cleanerProductSuggestions": [
+                {
+                    "name": "Strawberry Vanilla Prebiotic Soda",
+                    "brand": "Olipop",
+                    "keyBenefits": "Infused with plant fiber, prebiotics, and sweetened entirely with real strawberry juice concentrate and organic stevia leaf extract.",
+                    "ingredientsList": "Carbonated Water, Olismart (Chicory Root, Jerusalem Artichoke, Kudzu Root, Calendula Flower, Marshmallow Root), Strawberry Juice Concentrate, Apple Juice Concentrate, Lemon Juice, Stevia Leaf."
+                },
+                {
+                    "name": "Ginger Lemon Sparkling Tonic",
+                    "brand": "Cove Soda",
+                    "keyBenefits": "An organic certified sparkling drink with zero sugar, colored and flavored using actual ginger juice extract, and sweetened naturally with stevia extract.",
+                    "ingredientsList": "Filtered Carbonated Water, Organic Erythritol, Organic Lemon Juice Concentrate, Organic Ginger Juice, Apple Cider Vinegar, Organic Stevia Extract."
+                }
+            ],
             "summaryText": "A standard laboratory-engineered zero-sugar beverage. While low in calories, it achieves its flavor profile and long shelf life entirely through industrial sweetening compounds, chemical acidifiers, and synthetic colorants."
         }
     },
@@ -379,6 +407,20 @@ SAMPLE_PRODUCTS = {
                 "costIncreaseExplanation": "Swapping artificial coal-tar dyes Red 40 & Yellow 5 with freeze-dried organic vegetable extracts incurs a significantly higher processing expense due to cold-chain raw material needs.",
                 "retailPriceImpactPercent": 40.0
             },
+            "cleanerProductSuggestions": [
+                {
+                    "name": "Sour Blast Buddies",
+                    "brand": "SmartSweets",
+                    "keyBenefits": "92% less sugar than classic synthetic gummies. Flavored and colored with extract of sweet pumpkin, carrot, and spirulina, without cheap synthetic dyes.",
+                    "ingredientsList": "Soluble Tapioca Fiber, Chicory Root Fiber, Gelatin, Malic Acid, Citric Acid, Fruit and Vegetable Juice for Color, Stevia Leaf Extract."
+                },
+                {
+                    "name": "Organic Fruit Bites",
+                    "brand": "YumEarth",
+                    "keyBenefits": "No high-fructose corn syrup or petroleum additives. Colored entirely with organic radish, apple, carrot, and blackcurrant vegetable extracts.",
+                    "ingredientsList": "Organic Rice Syrup, Organic Cane Sugar, Pectin, Citric Acid, Natural Flavors, Organic Vegetable Concentrates for Color."
+                }
+            ],
             "summaryText": "Typical kids' snack candy formulated on a cheap sugar-starch matrix. The exciting colors and flavors are entirely synthesized from coal-tar derivatives and biochemical esters rather than real orchard harvest fruit crops."
         }
     },
@@ -432,6 +474,20 @@ SAMPLE_PRODUCTS = {
                 "costIncreaseExplanation": "Replacing whey water emulsified with chemicals with actual dairy fat, real cheddar extracts, and organic spice-based colouring adds considerable refrigeration, storage space, and crop agricultural farming premiums.",
                 "retailPriceImpactPercent": 65.0
             },
+            "cleanerProductSuggestions": [
+                {
+                    "name": "Mild Caso Style Queso",
+                    "brand": "Siete Foods",
+                    "keyBenefits": "100% dairy-free, zero chemical emulsifiers or toxic azo dyes. Uses creamy whole ground cashews, organic nutritional yeast flavor, and roasted bell peppers.",
+                    "ingredientsList": "Water, Tomatoes, Cashews, Carrots, Bell Peppers, Coconut Milk, Nutritional Yeast, Sea Salt, Garlic Powder, Jalapeno Powder, Lactic Acid."
+                },
+                {
+                    "name": "Plant-Based Nacho Queso Dip",
+                    "brand": "Primal Kitchen",
+                    "keyBenefits": "Silky organic sauce made from pumpkin seed butter combined with red peppers and apple cider vinegar, avoiding maltodextrin completely.",
+                    "ingredientsList": "Organic Red Bell Peppers, Organic Pumpkin Seed Butter, Potato Starch, Nutritional Yeast, Apple Cider Vinegar, Smoked Paprika, Garlic."
+                }
+            ],
             "summaryText": "An emulsion of oil, water, starch, and dairy fractions designed to taste like aged cheese mix. Savory umami and golden neon shades are chemical fabrications engineered for lower processing costs."
         }
     }
@@ -489,11 +545,11 @@ with c1:
                             }
                         })
                         contents_parts.append({
-                            "text": "Recognize ingredients from this visual packaging scan, isolate lab-made synthetic fillers/synthetic additives, identify biological alternatives, estimate wholesale production cost metrics, extract allergens and certifications."
+                            "text": "Recognize ingredients from this visual packaging scan, isolate lab-made synthetic fillers/synthetic additives, identify biological alternatives, estimate wholesale production cost metrics, extract allergens and certifications, and suggest 1-2 real-life popular cleaner brand alternatives with natural ingredients."
                         })
                     elif ingredients_text:
                         contents_parts.append({
-                            "text": f"Isolate synthetic additives, identify biological alternatives, estimate production cost changes, extract allergens and certifications for the following ingredient string:\n\n{ingredients_text}"
+                            "text": f"Isolate synthetic additives, identify biological alternatives, estimate production cost changes, extract allergens and certifications, and suggest 1-2 real-life popular cleaner brand alternatives with natural ingredients for the following ingredient string:\n\n{ingredients_text}"
                         })
                     else:
                         st.warning("Please provide either an image scan or paste label string before triggering analysis.")
@@ -502,7 +558,7 @@ with c1:
                         raw_json_str = call_gemini_api(
                             api_key=api_key,
                             model="gemini-2.5-flash",
-                            system_instruction="You are an elite food biochemist. Identify food additives, functional purposes, suggest premium natural substitutes, evaluate health risks, compute production cost factors, and flag potential workspace certifications.",
+                            system_instruction="You are an elite food biochemist. Identify food additives, functional purposes, suggest premium natural substitutes, evaluate health risks, compute production cost factors, flag potential certifications, and suggest 1-2 real, cleaner natural-ingredient brand alternatives (like Olipop, Siete Foods, SmartSweets, YumEarth, Primal Kitchen, etc., matching the parsed product category).",
                             contents_parts=contents_parts,
                             response_schema=raw_analysis_schema
                         )
@@ -667,6 +723,27 @@ with c2:
             else:
                 st.write("Please select an ingredient from the audit table to review alternative pathways.")
                 
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+        # Cleaner Brand Alternatives Section
+        if "cleanerProductSuggestions" in scan and scan["cleanerProductSuggestions"]:
+            st.markdown('<div class="natural-card">', unsafe_allow_html=True)
+            st.markdown('<div class="natural-card-header">🌱 Recommended Cleaner Brand Alternatives</div>', unsafe_allow_html=True)
+            st.write("These organic/natural market alternatives replace synthetic chemicals with whole food ingredients:")
+            
+            for idx, sug in enumerate(scan["cleanerProductSuggestions"]):
+                st.markdown(f"""
+                <div style="background-color: #F8F9F4; border: 1px solid #E1E6D9; border-radius: 12px; padding: 15px; margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 700; color: #2C332A; font-size: 1.05rem;">🛒 {sug['name']}</span>
+                        <span class="natural-badge-green" style="margin: 0;">{sug['brand']}</span>
+                    </div>
+                    <p style="margin: 8px 0; color: #4A5043; font-size: 0.9rem;">✨ <b>Key Benefits:</b> {sug['keyBenefits']}</p>
+                    <div style="font-size: 0.8rem; background-color: #FFFFFF; padding: 8px; border-radius: 6px; border: 1px solid #ECEFE8; color: #6A7165; font-family: monospace;">
+                        🌾 <b>Ingredients:</b> {sug['ingredientsList']}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
             
         # Cost Analysis Segment
