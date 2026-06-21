@@ -102,8 +102,19 @@ if "selected_ing" not in st.session_state:
 
 # Sidebar Control Center
 with st.sidebar:
-    st.markdown("### 🛠️ Configuration & API keys")
+    st.markdown("### 🛠️ Configuration & API Keys")
     api_key = st.text_input("Enter GEMINI_API_KEY", type="password", value=os.environ.get("GEMINI_API_KEY", ""))
+    
+    # Key Acquisition Steps & Security Disclaimer
+    st.markdown("""
+    💡 **Quick Guide: How to get your API Key**
+    1. Go to [Google AI Studio](https://aistudio.google.com/)
+    2. Click **"Get API Key"** (or **"Create API Key"**)
+    3. Generate a free key and paste it in the box above!
+    
+    🔒 **Privacy & Safety Note:**
+    *Your API key is only processed temporarily inside your active session context. It is **never saved**, written, or archived anywhere outside your running app instance.*
+    """)
     
     st.markdown("---")
     st.markdown("### 📜 Scan Search Logs")
@@ -263,6 +274,169 @@ raw_analysis_schema = {
     ]
 }
 
+# Sample datasets for high-fidelity offline explorer and copyable testing labels
+SAMPLE_PRODUCTS = {
+    "Diet Soda Pop": {
+        "ingredients_text": "Carbonated Water, Caramel Color, Aspartame, Phosphoric Acid, Potassium Benzoate, Natural Flavors, Caffeine",
+        "analysis": {
+            "productName": "Diet Soda (Preserved Caramel & Aspartame Classic)",
+            "hasSyntheticIngredients": True,
+            "allergens": [],
+            "certifications": [
+                {"name": "Organic Certified", "certified": False, "explanation": "Contains synthetic colors, preservatives, and artificial sweeteners which violate organic cultivation criteria."},
+                {"name": "Non-GMO Project", "certified": True, "explanation": "Does not contain genetically altered crops directly, though highly chemical in formulation."}
+            ],
+            "ingredients": [
+                {
+                    "name": "Aspartame",
+                    "isSynthetic": True,
+                    "functionalNecessity": "Low-calorie intensive artificial sweetening agent.",
+                    "naturalAlternatives": ["Stevia Leaf Extract", "Monk Fruit (Luo Han Guo) extract", "Allulose"],
+                    "healthImpactLevel": "Moderate Warning",
+                    "healthImpactDetails": "Artificial sweetener linked in some modern metabolic studies to changes in gut microbiota balance, digestive sensitivity, and potential neural feedback impacts on sugar cravings."
+                },
+                {
+                    "name": "Caramel Color (Class IV)",
+                    "isSynthetic": True,
+                    "functionalNecessity": "Visual colorant to emulate traditional dark rich soda appearance.",
+                    "naturalAlternatives": ["Organic Roasted Barley Malt extract", "Dandelion Root coloring", "Chicory root extract"],
+                    "healthImpactLevel": "Mild Concern",
+                    "healthImpactDetails": "Class IV caramel coloring is manufactured via ammonia-sulfite chemical processes which can release trace amounts of 4-MEI, a compound under ongoing toxicological review."
+                },
+                {
+                    "name": "Phosphoric Acid",
+                    "isSynthetic": True,
+                    "functionalNecessity": "Provides intense tangy/sharp acidity and works as a metal sequestrant to maintain stability.",
+                    "naturalAlternatives": ["Citric Acid (derived from citric vegetables)", "Tartaric Acid", "Pure lemon juice concentrate"],
+                    "healthImpactLevel": "Mild Concern",
+                    "healthImpactDetails": "High ongoing daily dietary input of processed phosphates has been associated with disruptions in calcium-phosphorus ratio homeostasis, potentially impacting long-term bone mineral density."
+                },
+                {
+                    "name": "Potassium Benzoate",
+                    "isSynthetic": True,
+                    "functionalNecessity": "Preservative preventing yeast, mold, and bacterial propagation in acidic liquids.",
+                    "naturalAlternatives": ["Rosemary Herb Extract", "Organic Citric Acid", "Cultured dextrose sugar"],
+                    "healthImpactLevel": "Moderate Warning",
+                    "healthImpactDetails": "Under acidic conditions with trace ascorbic acid (Vitamin C), benzoates can theoretically react to synthesize trace benzene. Generally considered harmless at regulated levels but kept under review."
+                }
+            ],
+            "productionCostEstimation": {
+                "syntheticProductionCostEstimate": "$0.04 per 12oz can wholesale",
+                "naturalProductionCostEstimate": "$0.14 per 12oz can with pure fruit/stevia alternatives",
+                "costIncreaseExplanation": "Replaced Aspartame with organic premium Stevia syrup and Class IV Caramel with organic roasted barley colorants. This increases food additive costs by approximately 250%, translating to a premium product positioning.",
+                "retailPriceImpactPercent": 25.0
+            },
+            "summaryText": "A standard laboratory-engineered zero-sugar beverage. While low in calories, it achieves its flavor profile and long shelf life entirely through industrial sweetening compounds, chemical acidifiers, and synthetic colorants."
+        }
+    },
+    "Rainbow Fruit Gummies": {
+        "ingredients_text": "Corn Syrup, Sugar, Modified Corn Starch, Red 40, Yellow 5, Blue 1, Fumaric Acid, Sodium Citrate, Natural and Artificial Flavors",
+        "analysis": {
+            "productName": "Silly Fruits Rainbow Gummies",
+            "hasSyntheticIngredients": True,
+            "allergens": [],
+            "certifications": [
+                {"name": "Vegan Friendly", "certified": True, "explanation": "Utilizes corn starch instead of animal gelatins."},
+                {"name": "Feingold Diet Compliant", "certified": False, "explanation": "Contains petroleum-derived artificial colorants: Red 40, Yellow 5, and Blue 1."}
+            ],
+            "ingredients": [
+                {
+                    "name": "Red 40",
+                    "isSynthetic": True,
+                    "functionalNecessity": "Synthetic petroleum-derived dye used for intense red tint.",
+                    "naturalAlternatives": ["Beet Root juice powder", "Purple sweet potato extract", "Radish juice coloring"],
+                    "healthImpactLevel": "Moderate Warning",
+                    "healthImpactDetails": "Azo dye Red 40 is strictly regulated in Europe, requiring warning labels regarding potential hyperactive behavior and concentration fluctuations in sensitive child cohorts."
+                },
+                {
+                    "name": "Yellow 5 (Tartrazine)",
+                    "isSynthetic": True,
+                    "functionalNecessity": "Coal-tar derived artificial azo dye providing bright lemon yellow color.",
+                    "naturalAlternatives": ["Turmeric Extract", "Beta-Carotene", "Saffron powder extract"],
+                    "healthImpactLevel": "Moderate Warning",
+                    "healthImpactDetails": "Tartrazine can cause acute hyper-responsiveness or allergy-like skin hives in individuals sensitive to aspirin, and is subject to restrictive limits globally."
+                },
+                {
+                    "name": "Artificial Flavors",
+                    "isSynthetic": True,
+                    "functionalNecessity": "Low-cost synthetic aromatic esters providing fruit-like fragrance and flavor stability.",
+                    "naturalAlternatives": ["Cold-pressed fruit essential oils", "Organic concentrated fruit puree solids", "Dehydrated whole strawberry/cherry powders"],
+                    "healthImpactLevel": "Mild Concern",
+                    "healthImpactDetails": "Proprietary lab-engineered formulas that do not correspond to any natural biological structure. Synthesizes flavor at a fraction of actual crop agricultural yields."
+                },
+                {
+                    "name": "Corn Syrup",
+                    "isSynthetic": True,
+                    "functionalNecessity": "Inexpensive starch-derived sweetener that also prevents crystallization of sugar.",
+                    "naturalAlternatives": ["Organic Tapioca Syrup", "Pure Maple nectar", "Organic Agave syrup"],
+                    "healthImpactLevel": "Mild Concern",
+                    "healthImpactDetails": "High glycemic load empty carbohydrate which contributes to rapid glucose spikes and insulin response, contributing to metabolic stress when ingested long-term."
+                }
+            ],
+            "productionCostEstimation": {
+                "syntheticProductionCostEstimate": "$0.12 per ounce package",
+                "naturalProductionCostEstimate": "$0.32 per ounce package utilizing real farm fruit powders",
+                "costIncreaseExplanation": "Swapping artificial coal-tar dyes Red 40 & Yellow 5 with freeze-dried organic vegetable extracts incurs a significantly higher processing expense due to cold-chain raw material needs.",
+                "retailPriceImpactPercent": 40.0
+            },
+            "summaryText": "Typical kids' snack candy formulated on a cheap sugar-starch matrix. The exciting colors and flavors are entirely synthesized from coal-tar derivatives and biochemical esters rather than real orchard harvest fruit crops."
+        }
+    },
+    "Bacon Nacho Cheese Dip": {
+        "ingredients_text": "Water, Canola Oil, Modified food starch, Whey, Salt, Monosodium Glutamate, Yellow 6, Disodium Phosphate, Lactic Acid, Artificial Smoke Flavor",
+        "analysis": {
+            "productName": "Zesty Cheesy Nacho Dip",
+            "hasSyntheticIngredients": True,
+            "allergens": ["Milk (Whey)"],
+            "certifications": [
+                {"name": "Kosher Certified", "certified": False, "explanation": "Contains non-certified dairy fractions, synthetics, and artificial smoke mixtures that are complex to trace for dietary compliance."},
+                {"name": "Gluten-Free Verified", "certified": True, "explanation": "Does not contain grain wheat, barley, or rye ingredients."}
+            ],
+            "ingredients": [
+                {
+                    "name": "Monosodium Glutamate (MSG)",
+                    "isSynthetic": True,
+                    "functionalNecessity": "Umami flavor potentiator that makes low-concentration cheese mixtures taste savory and complex.",
+                    "naturalAlternatives": ["Inactive Nutritional Yeast flakes", "Shiitake Mushroom powder", "Aged Sea Salt with kelp", "Tomato paste extract"],
+                    "healthImpactLevel": "Moderate Warning",
+                    "healthImpactDetails": "While general food safety bodies classify MSG as safe, some consumers express physiological hypersensitivity (headaches, flush, and warmth sensations) following high intake."
+                },
+                {
+                    "name": "Yellow 6 Dye",
+                    "isSynthetic": True,
+                    "functionalNecessity": "Visually mimics the vibrant orange shade expected of aged cheddar cheeses.",
+                    "naturalAlternatives": ["Annatto Seed Extract", "Paprika Oleoresin extract", "Organic Beta-Carotene pigment"],
+                    "healthImpactLevel": "Moderate Warning",
+                    "healthImpactDetails": "Yellow 6 is a petroleum-originated colorant linked in clinical allergen research to rare skin hives, bronchoconstriction reactions, and childhood hyperactivity markers."
+                },
+                {
+                    "name": "Maltodextrin",
+                    "isSynthetic": True,
+                    "functionalNecessity": "Highly processed filler, thickener, and starch-carrier used to standardize shelf stability.",
+                    "naturalAlternatives": ["Organic Tapioca Starch", "Chicory root fiber (Inulin)", "Arrowroot root thickener"],
+                    "healthImpactLevel": "Mild Concern",
+                    "healthImpactDetails": "Possesses a glycemic index value higher than pure table sugar. Snatches rapid glucose increases in patients targeting metabolic or prediabetic health control."
+                },
+                {
+                    "name": "Disodium Phosphate",
+                    "isSynthetic": True,
+                    "functionalNecessity": "Emulsifying salt ensuring the water, processed oil, and whey proteins do not separate at room temperature.",
+                    "naturalAlternatives": ["Organic Sunflower Lecithin", "Beeswax", "Gum Arabic"],
+                    "healthImpactLevel": "Mild Concern",
+                    "healthImpactDetails": "Acts as a phosphorus additive. Excess phosphorus can interfere with calcium absorption and stress kidney function in individuals with moderate renal clearance issues."
+                }
+            ],
+            "productionCostEstimation": {
+                "syntheticProductionCostEstimate": "$0.45 wholesale per jar unit",
+                "naturalProductionCostEstimate": "$1.15 wholesale per jar using real aged cheddar cream",
+                "costIncreaseExplanation": "Replacing whey water emulsified with chemicals with actual dairy fat, real cheddar extracts, and organic spice-based colouring adds considerable refrigeration, storage space, and crop agricultural farming premiums.",
+                "retailPriceImpactPercent": 65.0
+            },
+            "summaryText": "An emulsion of oil, water, starch, and dairy fractions designed to taste like aged cheese mix. Savory umami and golden neon shades are chemical fabrications engineered for lower processing costs."
+        }
+    }
+}
+
 # Render main grid columns
 c1, c2 = st.columns([4, 8])
 
@@ -290,6 +464,7 @@ with c1:
     with tab_text:
         ingredients_text = st.text_area(
             "Paste labels text",
+            value=st.session_state.get("prefill_text", ""),
             placeholder="Example: Water, corn syrup, modified corn starch, red 40, Yellow 5, artificial flavor, sodium benzoate, citric acid..."
         )
         
@@ -352,6 +527,34 @@ with c1:
                 except Exception as e:
                     st.error(f"Failed parsing label: {str(e)}")
                     
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # Added Sample Label Quick Loader block
+    st.markdown('<div class="natural-card">', unsafe_allow_html=True)
+    st.markdown('<div class="natural-card-header">💡 No products nearby? Scan an online sample label:</div>', unsafe_allow_html=True)
+    st.write("Instant-explore pre-calculated biochemist scans of common grocery items:")
+    
+    for name, info in SAMPLE_PRODUCTS.items():
+        sub_col1, sub_col2 = st.columns([6, 4])
+        with sub_col1:
+            st.markdown(f"**{name}**")
+            st.caption(f"📝 *Ingredients:* {info['ingredients_text']}")
+        with sub_col2:
+            clean_name = name.lower().replace(" ", "_")
+            if st.button("Inspect Demo ⚡", key=f"scan_demo_{clean_name}", type="secondary", use_container_width=True):
+                st.session_state.active_scan = info["analysis"]
+                st.session_state.selected_ing = info["analysis"]["ingredients"][0] if info["analysis"]["ingredients"] else None
+                st.session_state.chat_history = [{
+                    "role": "model",
+                    "parts": [{"text": f"Successfully loaded pre-analyzed biochemist metadata for '{info['analysis']['productName']}'! Explore ingredients in the audit dashboard & ask questions below."}]
+                }]
+                st.success(f"Demonstration Loaded for '{name}'!")
+                st.rerun()
+            if st.button("Load & Copy ✍️", key=f"copy_demo_{clean_name}", type="secondary", use_container_width=True):
+                st.session_state.prefill_text = info["ingredients_text"]
+                st.success(f"Copied ingredients list to 'Manual Text' input area above!")
+                st.rerun()
+                
     st.markdown('</div>', unsafe_allow_html=True)
     
     # Embedded Chat Widget if a scan exists
