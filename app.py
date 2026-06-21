@@ -105,6 +105,13 @@ with st.sidebar:
     st.markdown("### 🛠️ Configuration & API Keys")
     api_key = st.text_input("Enter GEMINI_API_KEY", type="password", value=os.environ.get("GEMINI_API_KEY", ""))
     
+    model_choice = st.selectbox(
+        "Select Model Tier 🧠",
+        options=["gemini-2.5-flash", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.5-pro"],
+        index=0,
+        help="If you encounter HTTP 429 quota/rate limit errors on the Google AI Studio free tier, switch to 'gemini-1.5-flash' for a more robust quota structure."
+    )
+    
     # Key Acquisition Steps & Security Disclaimer
     st.markdown("""
     💡 **Quick Guide: How to get your API Key**
@@ -243,7 +250,15 @@ raw_analysis_schema = {
                     "functionalNecessity": {"type": "STRING"},
                     "naturalAlternatives": {
                         "type": "ARRAY",
-                        "items": {"type": "STRING"}
+                        "items": {
+                            "type": "OBJECT",
+                            "properties": {
+                                "name": {"type": "STRING"},
+                                "explanation": {"type": "STRING"},
+                                "sourcing": {"type": "STRING"}
+                            },
+                            "required": ["name", "explanation", "sourcing"]
+                        }
                     },
                     "healthImpactLevel": {"type": "STRING"},
                     "healthImpactDetails": {"type": "STRING"}
@@ -286,6 +301,167 @@ raw_analysis_schema = {
         "cleanerProductSuggestions",
         "summaryText"
     ]
+}
+
+# Database of natural ingredient alternatives containing explanations and sourcing information
+ALTERNATIVE_DETAILS = {
+    # Sweeteners / Sugars
+    "Stevia Leaf Extract": {
+        "explanation": "A natural, zero-calorie intense sweetener extracted from the leaves of the Stevia rebaudiana plant. It is about 200-300 times sweeter than sucrose and has a negligible effect on blood glucose.",
+        "sourcing": "Sourced from the leaves of the stevia herb plant cultivated in South America and Asia, obtained via water extraction, filtration, and crystallization."
+    },
+    "Monk Fruit (Luo Han Guo) extract": {
+        "explanation": "An intense zero-calorie natural sweetener containing sweet compounds called mogrosides, extracted from the Monk Fruit, a herbaceous perennial vine native to southern China.",
+        "sourcing": "Sourced and imported from subtropical mountain orchard harvests in southern China, extracted using warm-water processing."
+    },
+    "Allulose": {
+        "explanation": "A rare natural low-calorie monosaccharide sugar that tastes and functions almost exactly like table sugar, but with 90% fewer calories and no impact on blood sugar levels.",
+        "sourcing": "Naturally found in small quantities in figs, raisins, and jackfruit; commercially produced via enzymatic conversion of corn or tapioca starch."
+    },
+    "Organic Tapioca Syrup": {
+        "explanation": "A wholesome liquid sweetener produced from natural starch of cassava roots. It provides smooth binding, moisture retention, and moderate sweetness without synthetic processing.",
+        "sourcing": "Produced from the tubers of the cassava (tapioca) plant via traditional acid-enzyme hydrolysis, sourced from certified organic tropical crop farms."
+    },
+    "Pure Maple nectar": {
+        "explanation": "A clean fluid sweetener containing essential minerals like manganese, zinc, and calcium, tapped directly from maples.",
+        "sourcing": "Harvested during spring by tapping wild maple tree stands in northern forests, then boiled down to concentrate the pure syrup."
+    },
+    "Organic Agave syrup": {
+        "explanation": "A slow-burning, highly water-soluble golden nectar rich in fructans, extracted from succulent agave plants.",
+        "sourcing": "Obtained by pressing the core (pina) of organic blue agave succulents grown in certified arid regions of Mexico."
+    },
+
+    # Colorants
+    "Organic Roasted Barley Malt extract": {
+        "explanation": "A natural, rich dark brown colorant and flavoring agent made by roasting malted barley grains to give drinks a deep caramel color naturally.",
+        "sourcing": "Extracted from roasted organic barley grains; sourced from artisan organic grain malting facilities."
+    },
+    "Dandelion Root coloring": {
+        "explanation": "A prebiotic-rich natural herbal extract that yields an earthy, warm golden-brown syrup suitable for dark beverages and tonics.",
+        "sourcing": "Produced by roasting and decocting wild-harvested dandelion roots (Taraxacum officinale)."
+    },
+    "Chicory root extract": {
+        "explanation": "A fiber-dense (inulin) dark extract roasted to mimic coffee/caramel tones while lending prebiotic body.",
+        "sourcing": "Sourced by processing dried, roasted roots of the Cichorium intybus herb crop."
+    },
+    "Beet Root juice powder": {
+        "explanation": "A brilliant deep magenta-red natural pigment containing betalain compounds, which serves as a clean alternative to coal-tar Red 40.",
+        "sourcing": "Produced by dehydrating fresh organic sugar-beet roots and milling them down to a highly soluble fine violet-red powder."
+    },
+    "Purple sweet potato extract": {
+        "explanation": "An anthocyanin-rich, heat-stable natural violet/red dye providing beautiful shades without petroleum content.",
+        "sourcing": "Sourced from organic purple-fleshed sweet potatoes via simple aqueous milling and extraction."
+    },
+    "Radish juice coloring": {
+        "explanation": "An acid-stable, high-intensity red colorant drawn from red radish skins with no flavor residue.",
+        "sourcing": "Pressed and filtered from red radish vegetable crops, typically sourced from commercial organic agricultural farms."
+    },
+    "Turmeric Extract": {
+        "explanation": "A high-potency yellow-orange pigment containing curcuminoids, providing a vibrant sunny glow with antioxidant properties.",
+        "sourcing": "Extracted from the rhizomes (roots) of the Curcuma longa plant, sourced from organic turmeric partners."
+    },
+    "Beta-Carotene": {
+        "explanation": "A safe provitamin orange colorant naturally occurring in yellow-orange crops, converting to Vitamin A inside the human body.",
+        "sourcing": "Sourced via extraction of organic carrots, pumpkins, or sustainable marine algae (Dunaliella salina)."
+    },
+    "Saffron powder extract": {
+        "explanation": "A premium golden colorant and delicate aromatic spice derived from crocus flower stigmas.",
+        "sourcing": "Sourced from meticulously hand-harvested Crocus sativus flower blossoms in Mediterranean and West Asian valleys."
+    },
+    "Annatto Seed Extract": {
+        "explanation": "A warm, natural orange-yellow carotenoid dye extracted from the seeds of the achiote tree, standardly used to color natural cheeses.",
+        "sourcing": "Sourced by washing the seeds of the Bixa orellana shrub native to tropical regions of the Americas."
+    },
+    "Paprika Oleoresin extract": {
+        "explanation": "A natural oil-soluble red-orange color obtained by extracting ground sweet red peppers, providing rich visual warmth.",
+        "sourcing": "Produced via oil extraction of dried sweet bell pepper pod crops (Capsicum annuum)."
+    },
+    "Organic Beta-Carotene pigment": {
+        "explanation": "Plant-derived pure carotenoid compound used as a deep orange food pigment that also acts as a healthy precursor to Vitamin A.",
+        "sourcing": "Extracted directly from organic squashes, carrots, or palm oil extracts."
+    },
+
+    # Preservatives / Acids / Emulsifiers
+    "Citric Acid (derived from citric vegetables)": {
+        "explanation": "An organic acid found plentifully in citrus fruits that regulates acidity, adds sour tang, and acts as a natural metal chelator to preserve freshness.",
+        "sourcing": "Sourced from lemon, lime, or grapefruit juices, or naturally fermented using agricultural molasses."
+    },
+    "Tartaric Acid": {
+        "explanation": "A naturally occurring diprotic fruit acid that provides an authentic tart finish and works as an antioxidant synergist.",
+        "sourcing": "Sourced as a natural byproduct from regional winemaking processes where tartrate crystals settle in oak barrels."
+    },
+    "Pure lemon juice concentrate": {
+        "explanation": "Raw concentrated juice of whole lemons providing natural citric acid, high Vitamin C content, and crisp refreshing acidity.",
+        "sourcing": "Pressed from fresh lemons harvested in citrus groves and concentrated via vacuum evaporation."
+    },
+    "Rosemary Herb Extract": {
+        "explanation": "An extract loaded with carnosic acid and rosmarinic acid, acting as a highly powerful natural antioxidant to prevent oil and fat rancidity.",
+        "sourcing": "Extracted using carbon dioxide from organic rosemary woody herb shrubs (Rosmarinus officinalis)."
+    },
+    "Organic Citric Acid": {
+        "explanation": "Certified organic botanical dicarboxylic acid that provides crisp tart sour notes and natural stabilization.",
+        "sourcing": "Obtained via fermentation of organic sugar cane molasses or organic fruit starches."
+    },
+    "Cultured dextrose sugar": {
+        "explanation": "A natural shelf-life extender produced via controlled fermentation of dextrose, yielding organic acids that naturally suppress mold and bacteria.",
+        "sourcing": "Formed by fermenting clean organic sugar-starches with dairy or plant-based starter cultures."
+    },
+    "Organic Sunflower Lecithin": {
+        "explanation": "A premium allergen-free natural phospholipid mixture that works as an exceptional emulsifier to blend water and oils seamlessly.",
+        "sourcing": "Sourced from oil-pressing of organic non-GMO sunflower seeds, extracted physically without using chemical solvents like hexane."
+    },
+    "Beeswax": {
+        "explanation": "A natural, food-grade glazing agent secreted by honeybees, used as a structural stabilizer or moisture barrier.",
+        "sourcing": "Harvested from sustainable apiculture honeycomb pressings under strict organic conservation policies."
+    },
+    "Gum Arabic": {
+        "explanation": "A natural botanical polysaccharide binder that acts as an stabilizer and emulsifier, giving smooth body to dips and beverages.",
+        "sourcing": "Sourced as a hardened sap exuded from wild acacia trees (Acacia senegal) in the African Sahel region."
+    },
+
+    # Starches / Thickening agents
+    "Organic Tapioca Starch": {
+        "explanation": "A clean, gluten-free root starch used to thicken emulsified sauces, yielding a glossy, smooth cheese-like texture.",
+        "sourcing": "Sourced from the starch of ground organic cassava roots harvested in tropical farm plots."
+    },
+    "Chicory root fiber (Inulin)": {
+        "explanation": "A soluble prebiotic dietary fiber that naturally thickens and mimics the rich mouthfeel of fats and starches without spiking blood sugar.",
+        "sourcing": "Extracted using safe water filtration from chicory plant roots (Cichorium intybus)."
+    },
+    "Arrowroot root thickener": {
+        "explanation": "An easily digestible, nutrient-rich starch extracted from tropical rhizomes, creating beautiful uniform emulsions.",
+        "sourcing": "Obtained via traditional washing and milling of organic Maranta arundinacea tuber crops."
+    },
+
+    # Flavors / Umami Enhancers
+    "Inactive Nutritional Yeast flakes": {
+        "explanation": "Deactivated Saccharomyces cerevisiae yeast rich in B-vitamins, providing an intensely rich, nutty, and cheesy umami flavor profile.",
+        "sourcing": "Grown on certified organic molasses substrates, harvested, washed, pasteurized, and gently drum-dried into golden flakes."
+    },
+    "Shiitake Mushroom powder": {
+        "explanation": "A direct natural source of free glutamate, guanylate, and adenylates that provides deep, savory earth-tone umami complexity.",
+        "sourcing": "Obtained by freeze-drying whole grown organic Shiitake (Lentinula edodes) mushrooms and milling to ultra-fine dust."
+    },
+    "Aged Sea Salt with kelp": {
+        "explanation": "Unrefined solar-evaporated sea salt blended with wild ocean kelp, offering rich minerals and organic iodine that highlight savory flavors.",
+        "sourcing": "Solar harvested from clean coastal salt pans and blended with harvested Atlantic kelp (Laminaria)."
+    },
+    "Tomato paste extract": {
+        "explanation": "A rich concentrate loaded with natural lycopene and naturally occurring glutamic acid to double-boost food savoriness.",
+        "sourcing": "Prepared by slow-cooking wholesome organic red tomatoes and dehydrating to a high-density essence."
+    },
+    "Cold-pressed fruit essential oils": {
+        "explanation": "Incredible, highly aromatic food-grade oils pressed physically from fresh fruit rinds, preserving pure botanical volatile compounds.",
+        "sourcing": "Obtained by mechanical cold-pressing of citrus peels and fruit skins, sourced from organic orchards."
+    },
+    "Organic concentrated fruit puree solids": {
+        "explanation": "Whole real fruit concentrates containing native fiber, natural pigments, and genuine fruit pulp sweetness.",
+        "sourcing": "Produced by gently boiling down pressed fresh organic fruits into concentrated purees."
+    },
+    "Dehydrated whole strawberry/cherry powders": {
+        "explanation": "Real whole fruit flesh freeze-dried and ground to capture the authentic, complex natural esters of fruits.",
+        "sourcing": "Made from freshly frozen picked seasonal berries dried under vacuum and gently powdered."
+    }
 }
 
 # Sample datasets for high-fidelity offline explorer and copyable testing labels
@@ -557,7 +733,7 @@ with c1:
                     if len(contents_parts) > 0:
                         raw_json_str = call_gemini_api(
                             api_key=api_key,
-                            model="gemini-2.5-flash",
+                            model=model_choice,
                             system_instruction="You are an elite food biochemist. Identify food additives, functional purposes, suggest premium natural substitutes, evaluate health risks, compute production cost factors, flag potential certifications, and suggest 1-2 real, cleaner natural-ingredient brand alternatives (like Olipop, Siete Foods, SmartSweets, YumEarth, Primal Kitchen, etc., matching the parsed product category).",
                             contents_parts=contents_parts,
                             response_schema=raw_analysis_schema
@@ -646,7 +822,7 @@ with c1:
                         
                         assistant_reply = call_gemini_chat(
                             api_key=api_key,
-                            model="gemini-2.5-flash",
+                            model=model_choice,
                             system_instruction=sys_instruction,
                             history=st.session_state.chat_history[:-1],
                             new_user_message=user_query
@@ -715,9 +891,22 @@ with c2:
                 
                 st.markdown("---")
                 st.markdown("🌱 **Clean Alternatives suggested:**")
+                st.caption("Click any alternative below to expand details and sourcing information:")
                 if len(sel["naturalAlternatives"]) > 0:
                     for alt in sel["naturalAlternatives"]:
-                        st.success(f"✔️ **{alt}**")
+                        if isinstance(alt, dict):
+                            alt_name = alt.get("name", "Unknown Alternative")
+                            alt_info = alt.get("explanation", "Information not available.")
+                            alt_source = alt.get("sourcing", "Available at natural food stores or online specialty retailers.")
+                        else:
+                            alt_name = str(alt)
+                            alt_details = ALTERNATIVE_DETAILS.get(alt_name, {})
+                            alt_info = alt_details.get("explanation", "A natural source or food derivative that can functionally replace this synthetic compound.")
+                            alt_source = alt_details.get("sourcing", "Sourced from whole plant products, certified organic suppliers, or natural food channels.")
+                        
+                        with st.expander(f"✔️ {alt_name}"):
+                            st.markdown(f"📝 **About this ingredient:**\n{alt_info}")
+                            st.markdown(f"🌍 **Where to source it:**\n{alt_source}")
                 else:
                     st.write("*No direct single natural replacement can functionally match. Synthetic necessary for shelf retention.*")
             else:
@@ -751,17 +940,23 @@ with c2:
         st.markdown('<div class="natural-card">', unsafe_allow_html=True)
         st.markdown('<div class="natural-card-header">📊 Premium Cost of Production Estimator</div>', unsafe_allow_html=True)
         
-        nested_c1, nested_c2 = st.columns([4, 8])
+        nested_c1, nested_c2 = st.columns([5, 7])
         with nested_c1:
-            st.metric(
-                label="Synthetic wholesale production cost",
-                value=cost["syntheticProductionCostEstimate"]
-            )
-            st.metric(
-                label="Natural Sourced production cost change",
-                value=cost["naturalProductionCostEstimate"],
-                delta=f"+{cost['retailPriceImpactPercent']}% est. retail premium"
-            )
+            st.markdown(f"""
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px;">
+                <div style="background-color: #FAFBF9; border: 1px solid #E1E6D9; border-radius: 12px; padding: 12px 16px;">
+                    <span style="font-size: 0.8rem; color: #6A7165; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Synthetic wholesale prod. cost:</span>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #2C332A; margin-top: 2px;">{cost["syntheticProductionCostEstimate"]}</div>
+                </div>
+                <div style="background-color: #F1F4ED; border: 1px solid #D8DEC7; border-radius: 12px; padding: 12px 16px;">
+                    <span style="font-size: 0.8rem; color: #4B6344; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Natural sourced prod. cost:</span>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #4B6344; margin-top: 2px;">{cost["naturalProductionCostEstimate"]}</div>
+                    <span style="font-size: 0.75rem; color: #4B6344; background-color: #E2EADF; padding: 2px 8px; border-radius: 10px; font-weight: 700; margin-top: 4px; display: inline-block;">
+                        📈 +{cost['retailPriceImpactPercent']}% est. retail premium
+                    </span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
         with nested_c2:
             st.markdown("#### Economic Feasibility breakdown")
             st.write(cost["costIncreaseExplanation"])
