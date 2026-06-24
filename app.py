@@ -774,6 +774,11 @@ with c1:
     st.markdown('<div class="natural-card-header">💡 No products nearby? Scan an online sample label:</div>', unsafe_allow_html=True)
     st.write("Instant-explore pre-calculated biochemist scans of common grocery items:")
     
+    # Callback to load ingredients to session state safely before rendering text area
+    def load_demo_ingredients(text_to_load):
+        st.session_state.manual_ingredients_text = text_to_load
+        st.session_state.just_loaded_text = True
+
     for name, info in SAMPLE_PRODUCTS.items():
         sub_col1, sub_col2 = st.columns([6, 4])
         with sub_col1:
@@ -791,11 +796,14 @@ with c1:
                 }]
                 st.success(f"Demonstration Loaded for '{name}'!")
                 st.rerun()
-            if st.button("Load & Copy ✍️", key=f"copy_demo_{clean_name}", type="secondary", use_container_width=True):
-                st.session_state.manual_ingredients_text = info["ingredients_text"]
-                st.session_state.just_loaded_text = True
-                st.success(f"Copied ingredients list to 'Manual Text' input area above!")
-                st.rerun()
+            st.button(
+                "Load & Copy ✍️", 
+                key=f"copy_demo_{clean_name}", 
+                type="secondary", 
+                use_container_width=True,
+                on_click=load_demo_ingredients,
+                args=(info["ingredients_text"],)
+            )
                 
     st.markdown('</div>', unsafe_allow_html=True)
     
