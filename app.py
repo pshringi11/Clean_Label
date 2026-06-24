@@ -810,7 +810,9 @@ def get_product_image(product_name: str) -> str:
     elif "cheese" in name or "dip" in name or "nacho" in name or "zesty" in name:
         return "https://lh3.googleusercontent.com/aida-public/AB6AXuA6h8ylJzvEpdeqJh8ClXwp2g92vdsq2oUPx3dOsBHF-Z3qvfUrUspxfGD2iMKCA_W2Jc-KpBfB9SEkkjdLZHEbDWs50Brc34cYMi4FfrRVkkj_BmahsBVPZbZ8KZXevfje6rCOWeLjMWD060_ZE-iqWcECyEcL7YZ1Cdf74ZOVdaktNybF8lsRBJvfq2bC99Z-zPWYVRZoxtQTtRkLppLJgLUsizqf0RteMXFLMhpooGkTlmylJ1377OtzCcPKa9Jk4qmaXBrqBHw"
     else:
-        return "https://lh3.googleusercontent.com/aida-public/AB6AXuBDNigrJ1tDKBQw29K4TC0DsEQUDLXa09ddkDZnmfz3hyGId4Hs6lSxKUO3Rfj6AxTYgCzLxQm0CTIWSVuGmoUYRQuACzDt6fc5AYWxt-4StafhRbCTZjzbb1gcLHki5pKQpKW9aDl9Ij9jVaratGVG9QbUl2Grrk80x8hPYeKQs-dE5NHY7puDEH-MF5To_42fnG-1TRfBlpLLgWEN_rnbTuqfdHWvA1Y0YZ# Render Content Based on the Sidebar Navigation Menu
+        return "https://lh3.googleusercontent.com/aida-public/AB6AXuBDNigrJ1tDKBQw29K4TC0DsEQUDLXa09ddkDZnmfz3hyGId4Hs6lSxKUO3Rfj6AxTYgCzLxQm0CTIWSVuGmoUYRQuACzDt6fc5AYWxt-4StafhRbCTZjzbb1gcLHki5pKQpKW9aDl9Ij9jVaratGVG9QbUl2Grrk80x8hPYeKQs-dE5NHY7puDEH-MF5To_42fnG-1TRfBlpLLgWEN_rnbTuqfdHWvA1Y0YZfeIAdV8VLI2dhGlg14rURnCcUQsQ4TVQVpa4YxZx8"
+
+# Render Content Based on the Sidebar Navigation Menu
 if st.session_state.navigation_page == "🌾 Ingredient Scanner":
     c1, c2 = st.columns([5, 7])
     
