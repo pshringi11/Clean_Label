@@ -684,27 +684,35 @@ with c1:
     st.markdown('<div class="natural-card">', unsafe_allow_html=True)
     st.markdown('<div class="natural-card-header">🧪 Decode Food Label</div>', unsafe_allow_html=True)
     
-    tab_upload, tab_camera, tab_text = st.tabs(["📤 Upload Image", "📸 Camera Live", "✍️ Manual Text"])
+    if "input_method" not in st.session_state:
+        st.session_state.input_method = "📤 Upload Image"
+
+    input_method = st.radio(
+        "Select Input Source",
+        options=["📤 Upload Image", "📸 Camera Live", "✍️ Manual Text"],
+        key="input_method",
+        horizontal=True
+    )
     
     if st.session_state.get("just_loaded_text", False):
-        st.info("💡 **Demo ingredients loaded!** Click on the **✍️ Manual Text** tab below to view/edit them, then click **🌱 Analyze Ingredients Instantly** to scan.")
+        st.info("💡 **Demo ingredients loaded below!** Click **🌱 Analyze Ingredients Instantly** to scan, or edit them in the text box below.")
     
     ingredients_image = None
     ingredients_text = ""
     
-    with tab_upload:
+    if input_method == "📤 Upload Image":
         uploaded_file = st.file_uploader("Upload product ingredient label picture", type=["jpg", "jpeg", "png", "webp"])
         if uploaded_file is not None:
             ingredients_image = Image.open(uploaded_file)
             st.image(ingredients_image, caption="Uploaded image", use_container_width=True)
             
-    with tab_camera:
+    elif input_method == "📸 Camera Live":
         camera_file = st.camera_input("Snapshot product food labels")
         if camera_file is not None:
             ingredients_image = Image.open(camera_file)
             st.image(ingredients_image, caption="Captured Image", use_container_width=True)
             
-    with tab_text:
+    elif input_method == "✍️ Manual Text":
         ingredients_text = st.text_area(
             "Paste labels text",
             key="manual_ingredients_text",
@@ -781,15 +789,17 @@ with c1:
     # Callback to load ingredients to session state safely before rendering text area
     def load_demo_ingredients(text_to_load):
         st.session_state.manual_ingredients_text = text_to_load
+        st.session_state.input_method = "✍️ Manual Text"
         st.session_state.just_loaded_text = True
 
     for name, info in SAMPLE_PRODUCTS.items():
-        sub_col1, sub_col2 = st.columns([6, 4])
-        with sub_col1:
-            st.markdown(f"**{name}**")
-            st.caption(f"📝 *Ingredients:* {info['ingredients_text']}")
-        with sub_col2:
-            clean_name = name.lower().replace(" ", "_")
+        st.markdown(f"**{name}**")
+        st.caption(f"📝 *Ingredients:* {info['ingredients_text']}")
+        
+        # 50/50 Column split for primary demo trigger and copy action
+        btn_col1, btn_col2 = st.columns(2)
+        clean_name = name.lower().replace(" ", "_")
+        with btn_col1:
             if st.button("Inspect Demo ⚡", key=f"scan_demo_{clean_name}", type="secondary", use_container_width=True):
                 st.session_state.active_scan = info["analysis"]
                 st.session_state.selected_ing = info["analysis"]["ingredients"][0] if info["analysis"]["ingredients"] else None
@@ -800,6 +810,7 @@ with c1:
                 }]
                 st.success(f"Demonstration Loaded for '{name}'!")
                 st.rerun()
+        with btn_col2:
             st.button(
                 "Load & Copy ✍️", 
                 key=f"copy_demo_{clean_name}", 
@@ -808,6 +819,7 @@ with c1:
                 on_click=load_demo_ingredients,
                 args=(info["ingredients_text"],)
             )
+        st.markdown('<div style="margin-bottom: 12px; border-bottom: 1px solid #ECEFE8; padding-bottom: 12px;"></div>', unsafe_allow_html=True)
                 
     st.markdown('</div>', unsafe_allow_html=True)
     
@@ -989,12 +1001,16 @@ with c2:
         st.markdown('<div class="natural-card">', unsafe_allow_html=True)
         st.markdown('<div class="natural-card-header">🛡️ Dietary Compliance verification</div>', unsafe_allow_html=True)
         
-        cert_cols = st.columns(len(scan["certifications"]))
-        for i, cert in enumerate(scan["certifications"]):
-            with cert_cols[i]:
-                sticker = "✅" if cert["certified"] else "❌"
-                st.markdown(f"**{cert['name']}** {sticker}")
-                st.caption(cert["explanation"])
+        if len(scan["certifications"]) > 0:
+            cols = st.columns(min(3, len(scan["certifications"])))
+            for idx, cert in enumerate(scan["certifications"]):
+                col_idx = idx % 3
+                with cols[col_idx]:
+                    sticker = "✅" if cert["certified"] else "❌"
+                    st.markdown(f"**{cert['name']}** {sticker}")
+                    st.caption(cert["explanation"])
+        else:
+            st.info("No dietary certifications analyzed for this label.")
                 
         st.markdown('</div>', unsafe_allow_html=True)
         
