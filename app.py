@@ -103,11 +103,13 @@ if "manual_ingredients_text" not in st.session_state:
     st.session_state.manual_ingredients_text = ""
 if "just_loaded_text" not in st.session_state:
     st.session_state.just_loaded_text = False
+if "gemini_api_key" not in st.session_state:
+    st.session_state.gemini_api_key = os.environ.get("GEMINI_API_KEY", "")
 
 # Sidebar Control Center
 with st.sidebar:
     st.markdown("### 🛠️ Configuration & API Keys")
-    api_key = st.text_input("Enter GEMINI_API_KEY", type="password", value=os.environ.get("GEMINI_API_KEY", ""))
+    api_key = st.text_input("Enter GEMINI_API_KEY", type="password", key="gemini_api_key")
     
     model_choice = st.selectbox(
         "Select Model Tier 🧠",
@@ -123,8 +125,10 @@ with st.sidebar:
     2. Click **"Get API Key"** (or **"Create API Key"**)
     3. Generate a free key and paste it in the box above!
     
-    🔒 **Privacy & Safety Note:**
-    *Your API key is only processed temporarily inside your active session context. It is **never saved**, written, or archived anywhere outside your running app instance.*
+    🔒 **Privacy, Safety & Session Security Note:**
+    * **Multi-User Session Isolation**: This app runs on Streamlit's secure multi-session architecture. Every connected user/browser tab is running on an entirely independent thread with private local variables and isolated, secure session memory (`st.session_state`).
+    * **No Process-Wide Leakage**: We do not modify global environment variables (`os.environ`) at runtime, guaranteeing your key cannot be seen or accessed by any other simultaneous or future users.
+    * **Transient Storage**: Your API key is stored only inside your active browser session memory. It is **never saved**, written to any database, logged, or archived outside your running app instance.
     """)
     
     st.markdown("---")
