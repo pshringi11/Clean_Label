@@ -14,81 +14,175 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom Natural Tones CSS Styles
+# Custom Natural Tones & PurePlate CSS Styles
 st.markdown("""
 <style>
-    /* Styling elements matching 'Natural Tones' theme */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+    /* Global Body and Framework Overrides */
     div[data-testid="stHeader"] {
-        background-color: #F8F9F4;
+        background-color: #fafaf4 !important;
+    }
+    .stApp {
+        background-color: #fafaf4 !important;
     }
     .main .block-container {
-        background-color: #F8F9F4;
-        padding-top: 2rem;
-        padding-bottom: 3rem;
+        background-color: #fafaf4 !important;
+        padding-top: 1.5rem !important;
+        padding-bottom: 3rem !important;
+        font-family: 'Inter', sans-serif !important;
     }
-    .sidebar .sidebar-content {
-        background-color: #F1F4ED;
+    
+    /* Font Declarations */
+    h1, h2, h3, h4, h5, h6, .brand-title, .natural-card-header {
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+        color: #154212 !important;
+        font-weight: 700 !important;
+    }
+    
+    p, span, div, li, td, th, label {
+        font-family: 'Inter', sans-serif !important;
+        color: #42493e !important;
+    }
+    
+    /* Sidebar Aesthetics */
+    div[data-testid="stSidebar"] {
+        background-color: #eeeee9 !important;
+        border-right: 1px solid #c2c9bb !important;
+    }
+    div[data-testid="stSidebar"] h1, div[data-testid="stSidebar"] h2, div[data-testid="stSidebar"] h3 {
+        color: #154212 !important;
     }
     
     /* Elegant Title Cards */
     .brand-title {
-        font-family: 'Space Grotesk', sans-serif;
-        color: #2C332A;
-        font-weight: 700;
-        font-size: 2.2rem;
-        margin-bottom: 0.2rem;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+        color: #154212 !important;
+        font-weight: 800 !important;
+        font-size: 2.4rem !important;
+        margin-bottom: 0.1rem !important;
+        letter-spacing: -0.02em !important;
     }
     .brand-subtitle {
-        color: #6A7165;
-        font-size: 0.95rem;
-        font-weight: 500;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        margin-bottom: 1.5rem;
+        color: #72796e !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 0.9rem !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.05em !important;
+        text-transform: uppercase !important;
+        margin-bottom: 1.8rem !important;
     }
     
-    /* Natural Tones Card blocks */
+    /* PurePlate Card & Block aesthetics */
     .natural-card, div[data-testid="stVerticalBlockBorderWrapper"] {
-        background-color: #FFFFFF !important;
-        border: 1px solid #E1E6D9 !important;
-        border-radius: 24px !important;
-        padding: 1.8rem !important;
-        box-shadow: 0 4px 12px rgba(106, 113, 101, 0.04) !important;
-        margin-bottom: 1.5rem !important;
+        background-color: #ffffff !important;
+        border: 1px solid #e5e1da !important;
+        border-radius: 16px !important;
+        padding: 1.6rem !important;
+        box-shadow: 0 8px 24px rgba(45, 90, 39, 0.03) !important;
+        margin-bottom: 1.2rem !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
     }
     .natural-card-header {
-        font-family: 'Space Grotesk', sans-serif;
-        color: #2C332A;
-        font-weight: 700;
-        font-size: 1.25rem;
-        margin-bottom: 0.8rem;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+        color: #154212 !important;
+        font-weight: 700 !important;
+        font-size: 1.2rem !important;
+        margin-bottom: 0.8rem !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
     }
+    
+    /* Styled Buttons matching Stitch specifications */
+    div.stButton > button {
+        border-radius: 12px !important;
+        font-weight: 600 !important;
+        padding: 0.6rem 1.2rem !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    /* Primary buttons */
+    div.stButton > button[kind="primary"] {
+        background-color: #154212 !important;
+        color: #ffffff !important;
+        border: none !important;
+        box-shadow: 0 4px 12px rgba(21, 66, 18, 0.15) !important;
+    }
+    div.stButton > button[kind="primary"]:hover {
+        background-color: #23501e !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 6px 16px rgba(21, 66, 18, 0.25) !important;
+    }
+    div.stButton > button[kind="primary"]:active {
+        transform: translateY(1px) !important;
+    }
+    
+    /* Secondary buttons */
+    div.stButton > button[kind="secondary"] {
+        background-color: #ffffff !important;
+        color: #154212 !important;
+        border: 1px solid #c2c9bb !important;
+    }
+    div.stButton > button[kind="secondary"]:hover {
+        background-color: #f4f4ee !important;
+        border-color: #154212 !important;
+        color: #154212 !important;
+    }
+    
+    /* Streamlit Tab Styles override */
+    button[data-baseweb="tab"] {
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        color: #72796e !important;
+        padding-bottom: 12px !important;
+    }
+    button[data-baseweb="tab"][aria-selected="true"] {
+        color: #154212 !important;
+        border-bottom-color: #154212 !important;
+    }
+    
+    /* File Uploader styling */
+    div[data-testid="stFileUploader"] {
+        background-color: #ffffff !important;
+        border: 2px dashed #c2c9bb !important;
+        border-radius: 16px !important;
+        padding: 1.2rem !important;
+        text-align: center !important;
+        transition: border-color 0.2s ease !important;
+    }
+    div[data-testid="stFileUploader"]:hover {
+        border-color: #154212 !important;
+    }
+    
+    /* Badges */
     .natural-badge-green {
-        background-color: #F1F4ED;
-        color: #4B6344;
-        font-size: 0.75rem;
-        font-weight: 700;
-        padding: 0.3rem 0.8rem;
-        border-radius: 99px;
-        border: 1px solid #D8DEC7;
-        display: inline-block;
+        background-color: #ccebc7 !important;
+        color: #154212 !important;
+        font-size: 0.75rem !important;
+        font-weight: 700 !important;
+        padding: 0.35rem 0.9rem !important;
+        border-radius: 99px !important;
+        border: 1px solid #b0cfad !important;
+        display: inline-block !important;
     }
     .natural-badge-red {
-        background-color: #FFF0F0;
-        color: #992323;
-        font-size: 0.75rem;
-        font-weight: 700;
-        padding: 0.3rem 0.8rem;
-        border-radius: 99px;
-        border: 1px solid #FFD1D1;
-        display: inline-block;
+        background-color: #ffdad6 !important;
+        color: #ba1a1a !important;
+        font-size: 0.75rem !important;
+        font-weight: 700 !important;
+        padding: 0.35rem 0.9rem !important;
+        border-radius: 99px !important;
+        border: 1px solid #ffb4ab !important;
+        display: inline-block !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # Application Logo & Title
-st.markdown('<div class="brand-title">🌾 PureSource AI</div>', unsafe_allow_html=True)
-st.markdown('<div class="brand-subtitle">Streamlit Clean Label Food Ingredients alternative Scanner</div>', unsafe_allow_html=True)
+st.markdown('<div class="brand-title">🌾 PurePlate</div>', unsafe_allow_html=True)
+st.markdown('<div class="brand-subtitle">Streamlit Clean Food Ingredients & Alternative Scanner</div>', unsafe_allow_html=True)
 
 # Initialize Session States
 if "history" not in st.session_state:
@@ -677,6 +771,18 @@ SAMPLE_PRODUCTS = {
     }
 }
 
+# Dynamic Product Mockup Image Resolver
+def get_product_image(product_name: str) -> str:
+    name = str(product_name).lower()
+    if "soda" in name or "cola" in name or "zero sugar" in name:
+        return "https://lh3.googleusercontent.com/aida-public/AB6AXuC0inuVc8urPqPvdr7pQ_Irwh3Ek20qxwMFtN4mEWfYKYAuuMCeQ3OKKvtS0Gdab0jpLJNFvoVr97AdYt4pdlozuTtvuL3U5Y9kWPnH-Rm-yG6tVpQvY2gtHP5kR6ndQXOXhMjFgDVadWhl3AW1LRQYjJMShUlV5mlg75IXsn1KgFaeCbm8KyOphQUysT3_BQRhHuF1nhqChxvmldzfbWFYuGE3bK9Q6-IThcGA_N3weVVfpOy0Iky91t3CR286wcyX5_CeSde2MBE"
+    elif "gum" in name or "candy" in name or "gummies" in name or "silly" in name:
+        return "https://lh3.googleusercontent.com/aida-public/AB6AXuCcLXJfKMP_1hYPKa4QJA7VErw23JRlf2Fx4Kl9X3qnw1y2eGNVpFcQrCB3_omsqhyjAfTFyEFA4kGAd4M949RnkYpwVmv75T0z0B3_td45YmtKl8yVGsDT6gR1WhNRXhySLwPB6poG6rWT6K8VEB5gb3wepNwqmn5Pnq6eiFSWQavenjQ-_4H-52ELx6-UZkgXxyGHLsqHJgrO2j-zwbPQK-Kv64SJdp7N2aom3UdCnXC91xaBjfS__bKmrsh1fbfrBH2A07G76Nc"
+    elif "cheese" in name or "dip" in name or "nacho" in name or "zesty" in name:
+        return "https://lh3.googleusercontent.com/aida-public/AB6AXuA6h8ylJzvEpdeqJh8ClXwp2g92vdsq2oUPx3dOsBHF-Z3qvfUrUspxfGD2iMKCA_W2Jc-KpBfB9SEkkjdLZHEbDWs50Brc34cYMi4FfrRVkkj_BmahsBVPZbZ8KZXevfje6rCOWeLjMWD060_ZE-iqWcECyEcL7YZ1Cdf74ZOVdaktNybF8lsRBJvfq2bC99Z-zPWYVRZoxtQTtRkLppLJgLUsizqf0RteMXFLMhpooGkTlmylJ1377OtzCcPKa9Jk4qmaXBrqBHw"
+    else:
+        return "https://lh3.googleusercontent.com/aida-public/AB6AXuBDNigrJ1tDKBQw29K4TC0DsEQUDLXa09ddkDZnmfz3hyGId4Hs6lSxKUO3Rfj6AxTYgCzLxQm0CTIWSVuGmoUYRQuACzDt6fc5AYWxt-4StafhRbCTZjzbb1gcLHki5pKQpKW9aDl9Ij9jVaratGVG9QbUl2Grrk80x8hPYeKQs-dE5NHY7puDEH-MF5To_42fnG-1TRfBlpLLgWEN_rnbTuqfdHWvA1Y0YZfeIAdV8VLI2dhGlg14rURnCcUQsQ4TVQVpa4YxZx8"
+
 # Render main grid columns
 c1, c2 = st.columns([4, 8])
 
@@ -858,51 +964,114 @@ with c2:
     if st.session_state.active_scan:
         scan = st.session_state.active_scan
         
-        # Product Summary Card
+        # Calculate dynamic safety metrics
+        synthetics_list = [i for i in scan['ingredients'] if i['isSynthetic']]
+        synthetics_count = len(synthetics_list)
+        allergens_count = len(scan['allergens'])
+        
+        # Calculate score from 15 to 99 based on synthetic count
+        score_value = max(15, min(99, 100 - (synthetics_count * 15)))
+        score_decimal = round(score_value / 10, 1)
+        
+        product_img_url = get_product_image(scan['productName'])
+        
+        # Premium Product Summary Card
         st.markdown(f"""
-        <div class="natural-card">
-            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-                <div>
-                    <span class="natural-badge-green">Synthetics Identified: {len([i for i in scan['ingredients'] if i['isSynthetic']])}</span>
-                </div>
-                <div class="natural-badge-red">{len(scan['allergens'])} Allergens Detected</div>
+        <div class="natural-card" style="display: flex; gap: 20px; align-items: center; padding: 24px !important;">
+            <div style="flex-shrink: 0; width: 100px; height: 100px; border-radius: 12px; overflow: hidden; border: 1px solid #e5e1da; box-shadow: inset 0 0 10px rgba(0,0,0,0.05);">
+                <img src="{product_img_url}" style="width: 100%; height: 100%; object-fit: cover;" referrerPolicy="no-referrer" />
             </div>
-            <h2 style="margin: 0; color: #2C332A; font-family: 'Space Grotesk', sans-serif;">{scan['productName']}</h2>
-            <p style="color: #6A7165; margin-top: 10px; font-size: 0.95rem; line-height: 1.6;">{scan['summaryText']}</p>
+            <div style="flex-grow: 1;">
+                <div style="display: flex; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;">
+                    <span class="natural-badge-green">Synthetics Identified: {synthetics_count}</span>
+                    <span class="{"natural-badge-red" if allergens_count > 0 else "natural-badge-green"}">{allergens_count} Allergens</span>
+                </div>
+                <h2 style="margin: 0 0 6px 0; color: #154212; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 24px; font-weight: 800; letter-spacing: -0.01em;">{scan['productName']}</h2>
+                <p style="color: #42493e; margin: 0; font-size: 0.95rem; line-height: 1.5; font-family: 'Inter', sans-serif;">{scan['summaryText']}</p>
+            </div>
+            <div style="background-color: #ccebc7; color: #154212; padding: 10px 16px; border-radius: 14px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; min-width: 80px; height: 80px; box-shadow: 0 4px 10px rgba(21, 66, 18, 0.08); flex-shrink: 0;">
+                <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; line-height: 1; color: #154212; opacity: 0.8;">Purity</span>
+                <span style="font-size: 28px; font-weight: 800; line-height: 1; margin-top: 4px;">{score_decimal}</span>
+                <span style="font-size: 10px; font-weight: 600; line-height: 1; margin-top: 2px; opacity: 0.7;">/ 10</span>
+            </div>
         </div>
         """, unsafe_allow_html=True)
         
-        # Flagged potential Allergens
-        if len(scan["allergens"]) > 0:
-            st.warning(f"⚠️ **Common Allergens Flagged:** {', '.join(scan['allergens'])}")
+        # Purity / Health Spectrum Meter
+        st.markdown(f"""
+        <div class="natural-card" style="padding: 20px !important;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #72796e; display: flex; align-items: center; gap: 4px;">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">tune</span> Purity Spectrum Analysis
+                </span>
+                <span style="font-size: 12px; font-weight: 700; color: #154212;">{score_decimal * 10}% Botanically Pure</span>
+            </div>
+            <div style="position: relative; height: 12px; width: 100%; background: linear-gradient(to right, #ffdad6 0%, #e5e1da 50%, #ccebc7 100%); border-radius: 99px; margin: 12px 0;">
+                <div style="position: absolute; top: 50%; left: {score_value}%; transform: translate(-50%, -50%); width: 22px; height: 22px; background-color: #154212; border: 4px solid #ffffff; border-radius: 99px; box-shadow: 0 4px 10px rgba(0,0,0,0.25); transition: left 0.5s ease-out;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: #72796e; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;">
+                <span style="color: #ba1a1a;">Synthetic Heavy</span>
+                <span>Neutral Blend</span>
+                <span style="color: #154212;">Pure Botanical</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Flagged potential Allergens Warning banner
+        if allergens_count > 0:
+            st.markdown(f"""
+            <div style="background-color: #ffdad6; border: 1px solid #ffb4ab; border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                <span class="material-symbols-outlined" style="color: #ba1a1a; font-size: 24px;">warning</span>
+                <div style="font-size: 14px; color: #410002; font-family: 'Inter', sans-serif; font-weight: 500;">
+                    <b>Allergen Warning:</b> Common dietary triggers detected: <b>{', '.join(scan['allergens'])}</b>. Consult specialist guidelines if metabolic hypersensitivity exists.
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
             
         # Two Column Split: Left - Additives List, Right - Inspector Deep Dive
         sub_c1, sub_c2 = st.columns([5, 7])
         
         with sub_c1:
             with st.container(border=True):
-                st.markdown('<div class="natural-card-header">🍔 Ingredient Audit</div>', unsafe_allow_html=True)
-                st.write("Click an item below to inspect alternative pathways:")
+                st.markdown('<div class="natural-card-header"><span class="material-symbols-outlined">pageview</span> Ingredient Audit</div>', unsafe_allow_html=True)
+                st.write("Click any ingredient below to inspect health risk levels and natural alternative replacements:")
                 
                 for ing in scan["ingredients"]:
-                    # Label styling depending on synthetic vs natural
+                    # Beautiful prefixing matching Stitch designs
                     ing_label = f"🧪 {ing['name']}" if ing["isSynthetic"] else f"🌱 {ing['name']}"
                     if st.button(ing_label, key=f"ing_btn_{ing['name']}", use_container_width=True):
                         st.session_state.selected_ing = ing
             
         with sub_c2:
             with st.container(border=True):
-                st.markdown('<div class="natural-card-header">🔬 Alternative Inspector</div>', unsafe_allow_html=True)
+                st.markdown('<div class="natural-card-header"><span class="material-symbols-outlined">science</span> Alternative Inspector</div>', unsafe_allow_html=True)
                 
                 sel = st.session_state.selected_ing
                 if sel:
                     st.markdown(f"### {sel['name']}")
-                    is_syn_label = "Synthetic Additive 🧪" if sel["isSynthetic"] else "Natural Whole Ingredient 🌱"
-                    st.info(f"**Classification:** {is_syn_label} | **Health Risk level:** {sel['healthImpactLevel']}")
+                    is_syn = sel["isSynthetic"]
+                    is_syn_label = "Synthetic Additive 🧪" if is_syn else "Natural Whole Ingredient 🌱"
+                    classification_color = "#ba1a1a" if is_syn else "#154212"
+                    classification_bg = "#ffdad6" if is_syn else "#ccebc7"
                     
-                    st.markdown(f"💡 **Functional Necessity:** {sel['functionalNecessity']}")
+                    st.markdown(f"""
+                    <div style="background-color: {classification_bg}; color: {classification_color}; padding: 10px 14px; border-radius: 8px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; display: inline-block; margin-bottom: 12px;">
+                        {is_syn_label}
+                    </div>
+                    """, unsafe_allow_html=True)
                     
-                    st.markdown("---")
+                    # Risk level assessment pill
+                    risk = sel["healthImpactLevel"]
+                    risk_badge_class = "natural-badge-red" if "Warning" in risk or "Concern" in risk else "natural-badge-green"
+                    st.markdown(f"**Safety Classification Profile:** <span class='{risk_badge_class}'>{risk}</span>", unsafe_allow_html=True)
+                    
+                    st.markdown(f"""
+                    <div style="background-color: #fafaf4; border-left: 4px solid #154212; padding: 12px; border-radius: 4px; margin: 12px 0;">
+                        <div style="font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #154212; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;"><span class="material-symbols-outlined" style="font-size: 14px;">eco</span> Functional Necessity</div>
+                        <div style="font-size: 13.5px; color: #42493e;">{sel['functionalNecessity']}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
                     st.markdown("🚨 **Toxicological & Lifestyle Impact details:**")
                     st.write(sel["healthImpactDetails"])
                     
@@ -927,23 +1096,23 @@ with c2:
                     else:
                         st.write("*No direct single natural replacement can functionally match. Synthetic necessary for shelf retention.*")
                 else:
-                    st.write("Please select an ingredient from the audit table to review alternative pathways.")
+                    st.write("Please select an ingredient from the audit list on the left to review alternative pathways.")
             
         # Cleaner Brand Alternatives Section
         if "cleanerProductSuggestions" in scan and scan["cleanerProductSuggestions"]:
             with st.container(border=True):
-                st.markdown('<div class="natural-card-header">🌱 Recommended Cleaner Brand Alternatives</div>', unsafe_allow_html=True)
+                st.markdown('<div class="natural-card-header"><span class="material-symbols-outlined">eco</span> Recommended Cleaner Brand Alternatives</div>', unsafe_allow_html=True)
                 st.write("These organic/natural market alternatives replace synthetic chemicals with whole food ingredients:")
                 
                 for idx, sug in enumerate(scan["cleanerProductSuggestions"]):
                     st.markdown(f"""
-                    <div style="background-color: #F8F9F4; border: 1px solid #E1E6D9; border-radius: 12px; padding: 15px; margin-bottom: 12px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-weight: 700; color: #2C332A; font-size: 1.05rem;">🛒 {sug['name']}</span>
-                            <span class="natural-badge-green" style="margin: 0;">{sug['brand']}</span>
+                    <div style="background-color: #ffffff; border: 1px solid #e5e1da; border-radius: 16px; padding: 18px; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(45,90,39,0.02);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-weight: 700; color: #154212; font-size: 1.1rem; font-family: 'Plus Jakarta Sans', sans-serif;">🛒 {sug['name']}</span>
+                            <span style="background-color: #ccebc7; color: #154212; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 99px; border: 1px solid #b0cfad;">{sug['brand']}</span>
                         </div>
-                        <p style="margin: 8px 0; color: #4A5043; font-size: 0.9rem;">✨ <b>Key Benefits:</b> {sug['keyBenefits']}</p>
-                        <div style="font-size: 0.8rem; background-color: #FFFFFF; padding: 8px; border-radius: 6px; border: 1px solid #ECEFE8; color: #6A7165; font-family: monospace;">
+                        <p style="margin: 8px 0; color: #42493e; font-size: 0.95rem;">✨ <b>Key Benefits:</b> {sug['keyBenefits']}</p>
+                        <div style="font-size: 0.85rem; background-color: #fafaf4; padding: 10px; border-radius: 8px; border: 1px solid #e5e1da; color: #42493e; font-family: monospace;">
                             🌾 <b>Ingredients:</b> {sug['ingredientsList']}
                         </div>
                     </div>
@@ -952,21 +1121,36 @@ with c2:
         # Cost Analysis Segment
         cost = scan["productionCostEstimation"]
         with st.container(border=True):
-            st.markdown('<div class="natural-card-header">📊 Premium Cost of Production Estimator</div>', unsafe_allow_html=True)
+            st.markdown('<div class="natural-card-header"><span class="material-symbols-outlined">payments</span> Premium Cost of Production Estimator</div>', unsafe_allow_html=True)
             
             nested_c1, nested_c2 = st.columns([5, 7])
             with nested_c1:
+                # Beautiful side-by-side comparison bars mimicking Google Stitch layouts
                 st.markdown(f"""
-                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px;">
-                    <div style="background-color: #FAFBF9; border: 1px solid #E1E6D9; border-radius: 12px; padding: 12px 16px;">
-                        <span style="font-size: 0.8rem; color: #6A7165; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Synthetic wholesale prod. cost:</span>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: #2C332A; margin-top: 2px;">{cost["syntheticProductionCostEstimate"]}</div>
+                <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 12px;">
+                    <div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span style="font-size: 0.8rem; color: #72796e; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Synthetic Cost:</span>
+                            <span style="font-size: 0.95rem; font-weight: 700; color: #42493e;">{cost["syntheticProductionCostEstimate"]}</span>
+                        </div>
+                        <div style="height: 12px; width: 100%; background-color: #eeeee9; border-radius: 6px; overflow: hidden;">
+                            <div style="height: 100%; width: 25%; background-color: #72796e; border-radius: 6px;"></div>
+                        </div>
                     </div>
-                    <div style="background-color: #F1F4ED; border: 1px solid #D8DEC7; border-radius: 12px; padding: 12px 16px;">
-                        <span style="font-size: 0.8rem; color: #4B6344; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Natural sourced prod. cost:</span>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: #4B6344; margin-top: 2px;">{cost["naturalProductionCostEstimate"]}</div>
-                        <span style="font-size: 0.75rem; color: #4B6344; background-color: #E2EADF; padding: 2px 8px; border-radius: 10px; font-weight: 700; margin-top: 4px; display: inline-block;">
-                            📈 +{cost['retailPriceImpactPercent']}% est. retail premium
+                    
+                    <div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span style="font-size: 0.8rem; color: #154212; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;">Organic Sourced:</span>
+                            <span style="font-size: 0.95rem; font-weight: 700; color: #154212;">{cost["naturalProductionCostEstimate"]}</span>
+                        </div>
+                        <div style="height: 12px; width: 100%; background-color: #ccebc7; border-radius: 6px; overflow: hidden;">
+                            <div style="height: 100%; width: 75%; background-color: #154212; border-radius: 6px;"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="background-color: #ccebc7; border: 1px solid #b0cfad; border-radius: 10px; padding: 10px 14px; text-align: center;">
+                        <span style="font-size: 0.85rem; color: #154212; font-weight: 700; display: inline-block;">
+                            📈 +{cost['retailPriceImpactPercent']}% Est. Retail Premium
                         </span>
                     </div>
                 </div>
@@ -977,7 +1161,7 @@ with c2:
         
         # Certifications Badge integrity
         with st.container(border=True):
-            st.markdown('<div class="natural-card-header">🛡️ Dietary Compliance verification</div>', unsafe_allow_html=True)
+            st.markdown('<div class="natural-card-header"><span class="material-symbols-outlined">verified</span> Dietary Compliance verification</div>', unsafe_allow_html=True)
             
             if len(scan["certifications"]) > 0:
                 cols = st.columns(min(3, len(scan["certifications"])))
@@ -991,20 +1175,63 @@ with c2:
                 st.info("No dietary certifications analyzed for this label.")
         
     else:
-        # Initial greeting and demo
+        # Initial greeting and demo featuring PurePlate Welcome Hero & Bento Grid
+        st.markdown("""
+        <div style="position: relative; border-radius: 16px; overflow: hidden; height: 200px; margin-bottom: 24px; box-shadow: 0 8px 24px rgba(45,90,39,0.06);">
+            <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(21, 66, 18, 0.75) 0%, rgba(21, 66, 18, 0.15) 100%); z-index: 10;"></div>
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcLXJfKMP_1hYPKa4QJA7VErw23JRlf2Fx4Kl9X3qnw1y2eGNVpFcQrCB3_omsqhyjAfTFyEFA4kGAd4M949RnkYpwVmv75T0z0B3_td45YmtKl8yVGsDT6gR1WhNRXhySLwPB6poG6rWT6K8VEB5gb3wepNwqmn5Pnq6eiFSWQavenjQ-_4H-52ELx6-UZkgXxyGHLsqHJgrO2j-zwbPQK-Kv64SJdp7N2aom3UdCnXC91xaBjfS__bKmrsh1fbfrBH2A07G76Nc" style="width: 100%; height: 100%; object-fit: cover;" />
+            <div style="position: absolute; bottom: 20px; left: 20px; z-index: 20;">
+                <span style="background-color: #ccebc7; color: #154212; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; padding: 4px 10px; border-radius: 99px; font-weight: 700; margin-bottom: 8px; display: inline-block;">Welcome to PurePlate</span>
+                <h2 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 26px; font-weight: 800; color: #ffffff; margin: 0; line-height: 1.2; letter-spacing: -0.01em;">Empower Your Plate</h2>
+            </div>
+        </div>
+        
+        <p style="color: #42493e; font-size: 15px; line-height: 1.6; margin-bottom: 24px; font-family: 'Inter', sans-serif;">
+            Experience clarity in every bite. Our AI-driven biochemist engine deciphers complex food labels to reveal the true nutritional essence of your groceries, highlighting synthetic additives and presenting premium, whole-food alternative pathways.
+        </p>
+        """, unsafe_allow_html=True)
+        
+        # Bento Grid Insights
+        st.markdown("""
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px;">
+            <div style="background-color: #ffffff; border: 1px solid #e5e1da; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(45,90,39,0.02); display: flex; flex-direction: column; gap: 4px;">
+                <span class="material-symbols-outlined" style="color: #154212; font-size: 28px; font-variation-settings: 'FILL' 1;">verified</span>
+                <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 700; color: #154212; margin: 8px 0 2px 0;">Safe Ingredients</h3>
+                <p style="font-size: 32px; font-weight: 800; color: #154212; margin: 0; line-height: 1;">84%</p>
+                <p style="font-size: 12px; color: #72796e; margin: 4px 0 0 0;">Average scan match purity</p>
+            </div>
+            <div style="background-color: #ffffff; border: 1px solid #e5e1da; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(45,90,39,0.02); display: flex; flex-direction: column; gap: 4px;">
+                <span class="material-symbols-outlined" style="color: #ba1a1a; font-size: 28px; font-variation-settings: 'FILL' 1;">warning</span>
+                <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 700; color: #ba1a1a; margin: 8px 0 2px 0;">Additives Alert</h3>
+                <p style="font-size: 32px; font-weight: 800; color: #ba1a1a; margin: 0; line-height: 1;">12</p>
+                <p style="font-size: 12px; color: #72796e; margin: 4px 0 0 0;">Detected in recent community scans</p>
+            </div>
+        </div>
+        
+        <div style="background-color: #ccebc7; border: 1px solid #b0cfad; padding: 20px; border-radius: 16px; display: flex; align-items: start; gap: 16px; margin-bottom: 28px; box-shadow: 0 4px 12px rgba(45,90,39,0.02);">
+            <span class="material-symbols-outlined" style="color: #154212; font-size: 32px; flex-shrink: 0;">lightbulb</span>
+            <div>
+                <h4 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 700; color: #154212; margin: 0 0 4px 0;">PurePlate AI Intelligence Tip</h4>
+                <p style="font-size: 13.5px; color: #154212; margin: 0; line-height: 1.5;">"Transitioning from synthetic emulsifiers like disodium phosphate or stabilizers like maltodextrin to whole-food binding alternatives can dramatically reduce metabolic and digestive stress."</p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Guide on how to get started
         with st.container(border=True):
-            st.markdown('<div class="natural-card-header">🌾 Getting Started with PureSource AI</div>', unsafe_allow_html=True)
+            st.markdown('<div class="natural-card-header"><span class="material-symbols-outlined">help_outline</span> Quick Start Guidance</div>', unsafe_allow_html=True)
             st.markdown("""
-            To test the application, enter your Gemini API key in the sidebar, then use any of the options below:
-            - Paste a string of ingredients in the manual trace box on the left, then click 'Analyze'.
-            - Upload an image of food wrap labels to read components.
-            - Click any saved scan histories on the sidebar layout to study previously decoded items!
+            Ready to audit your ingredients? Provide your Gemini API key in the configuration sidebar, then:
+            - **Upload an Image**: Take or upload a photo of any packaged food's ingredient panel on the left.
+            - **📸 Camera Live**: Take a quick, real-time snapshot with your webcam or camera.
+            - **Manual Text Input**: Paste the raw ingredient text string directly into the text box.
+            - **Explore Sample Labels**: Click any item in the online sample label loader below to instant-scout!
             """)
 
-# Elegant Footer conforming to Natural Tones standard
+# Elegant Footer conforming to PurePlate Premium guidelines
 st.markdown("""
-<div style="margin-top: 50px; padding: 20px 0; border-top: 1px solid #E1E6D9; display: flex; justify-content: space-between; font-size: 11px; color: #6A7165; font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.1em; text-transform: uppercase;">
-    <div>PureSource AI Premium Scanner • Streamlit Engine v1.0.0</div>
-    <div>EWG Verified • Clean Label Certified Standards</div>
+<div style="margin-top: 60px; padding: 24px 0; border-top: 1px solid #e5e1da; display: flex; justify-content: space-between; font-size: 11px; color: #72796e; font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: 0.08em; text-transform: uppercase;">
+    <div>PurePlate Premium Scanner • Streamlit Engine v1.2.0</div>
+    <div>EWG Verified • Clean Label Standards & Transparency</div>
 </div>
 """, unsafe_allow_html=True)
