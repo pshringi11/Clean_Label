@@ -17,7 +17,9 @@ st.set_page_config(
 # Custom Natural Tones & PurePulse CSS Styles
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0&display=swap');
+    @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
     /* Global Body and Framework Overrides */
     div[data-testid="stHeader"] {
@@ -40,9 +42,13 @@ st.markdown("""
         font-weight: 700 !important;
     }
     
-    p, span, div, li, td, th, label {
+    p, li, td, th, label {
         font-family: 'Inter', sans-serif !important;
-        color: #42493e !important;
+        color: #42493e;
+    }
+    
+    .material-symbols-outlined, .material-icons {
+        font-family: 'Material Symbols Outlined', 'Material Icons' !important;
     }
     
     /* Sidebar Aesthetics */
@@ -94,40 +100,61 @@ st.markdown("""
         gap: 8px !important;
     }
     
-    /* Styled Buttons matching Stitch specifications */
+    /* Styled Buttons matching PurePulse specifications */
     div.stButton > button {
         border-radius: 12px !important;
         font-weight: 600 !important;
         padding: 0.6rem 1.2rem !important;
         transition: all 0.2s ease !important;
+        background-color: #ffffff !important;
+        color: #154212 !important;
+        border: 1px solid #c2c9bb !important;
+    }
+    div.stButton > button:hover {
+        background-color: #f4f4ee !important;
+        border-color: #154212 !important;
+        color: #154212 !important;
     }
     
-    /* Primary buttons */
-    div.stButton > button[kind="primary"] {
+    /* Primary buttons styling across all Streamlit versions */
+    div.stButton > button[kind="primary"],
+    div.stButton > button[data-testid*="primary"] {
         background-color: #154212 !important;
         color: #ffffff !important;
         border: none !important;
         box-shadow: 0 4px 12px rgba(21, 66, 18, 0.15) !important;
     }
-    div.stButton > button[kind="primary"]:hover {
+    div.stButton > button[kind="primary"]:hover,
+    div.stButton > button[data-testid*="primary"]:hover {
         background-color: #23501e !important;
         transform: translateY(-1px) !important;
         box-shadow: 0 6px 16px rgba(21, 66, 18, 0.25) !important;
     }
-    div.stButton > button[kind="primary"]:active {
+    div.stButton > button[kind="primary"]:active,
+    div.stButton > button[data-testid*="primary"]:active {
         transform: translateY(1px) !important;
     }
     
-    /* Secondary buttons */
-    div.stButton > button[kind="secondary"] {
+    /* Secondary buttons styling across all Streamlit versions */
+    div.stButton > button[kind="secondary"],
+    div.stButton > button[data-testid*="secondary"] {
         background-color: #ffffff !important;
         color: #154212 !important;
         border: 1px solid #c2c9bb !important;
     }
-    div.stButton > button[kind="secondary"]:hover {
+    div.stButton > button[kind="secondary"]:hover,
+    div.stButton > button[data-testid*="secondary"]:hover {
         background-color: #f4f4ee !important;
         border-color: #154212 !important;
         color: #154212 !important;
+    }
+    
+    /* Force internal elements inside buttons to inherit color and font family correctly */
+    div.stButton > button p,
+    div.stButton > button span,
+    div.stButton > button div {
+        color: inherit !important;
+        font-family: 'Inter', sans-serif !important;
     }
     
     /* Streamlit Tab Styles override */
@@ -206,7 +233,7 @@ if "gemini_api_key" not in st.session_state:
 with st.sidebar:
     # Custom HTML Header conforming to PurePulse Premium guidelines
     st.markdown("""
-    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-b: 1px solid #c2c9bb;">
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #c2c9bb;">
         <div style="width: 44px; height: 44px; background-color: #2d5a27; display: flex; align-items: center; justify-content: center; color: #9dd090; border-radius: 12px;">
             <span class="material-symbols-outlined" style="font-size: 24px; color: #9dd090 !important;">eco</span>
         </div>
