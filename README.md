@@ -1,5 +1,7 @@
 # 🥗CleanLabel AI
 
+## [Live app]((https://cleanlabel.streamlit.app/))
+
 CleanLabel AI is an AI-powered food transparency assistant that helps consumers look beyond the barcode. By leveraging the multimodal power of Google Gemini 1.5 Flash via the new Google GenAI SDK, the app reads actual text from packaged food ingredient lists to identify synthetic additives, suggest natural plant-based alternatives, calculate economic production shifts, and offer a conversational deep-dive companion.
 
 Unlike traditional apps that rely on static barcode databases, CleanLabel AI uses an AI-first approach, allowing it to analyze any packaged food item—from global brands to local bakery goods—purely from a photograph.
@@ -67,8 +69,6 @@ The app will automatically spin up in your default web browser at http://localho
 Because Streamlit natively supports camera streaming components, you can test this on your physical phone:
 
 Ensure your computer and phone are connected to the same Wi-Fi network.
-
-Look at your terminal output after running streamlit run app.py to find your Network URL ([https://cleanlabel.streamlit.app/]([url](https://cleanlabel.streamlit.app/)).
 
 Type that URL into your mobile browser. Tap Camera Scan to launch your phone's native camera inside the browser and start scanning labels in your pantry!
 
