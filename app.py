@@ -684,35 +684,27 @@ with c1:
     with st.container(border=True):
         st.markdown('<div class="natural-card-header">🧪 Decode Food Label</div>', unsafe_allow_html=True)
         
-        if "input_method" not in st.session_state:
-            st.session_state.input_method = "📤 Upload Image"
-
-        input_method = st.radio(
-            "Select Input Source",
-            options=["📤 Upload Image", "📸 Camera Live", "✍️ Manual Text"],
-            key="input_method",
-            horizontal=True
-        )
+        tab_upload, tab_camera, tab_text = st.tabs(["📤 Upload Image", "📸 Camera Live", "✍️ Manual Text"])
         
         if st.session_state.get("just_loaded_text", False):
-            st.info("💡 **Demo ingredients loaded below!** Click **🌱 Analyze Ingredients Instantly** to scan, or edit them in the text box below.")
+            st.info("💡 **Demo ingredients loaded!** Select the **✍️ Manual Text** tab above to view/edit them, then click **🌱 Analyze Ingredients Instantly** below to scan.")
         
         ingredients_image = None
         ingredients_text = ""
         
-        if input_method == "📤 Upload Image":
+        with tab_upload:
             uploaded_file = st.file_uploader("Upload product ingredient label picture", type=["jpg", "jpeg", "png", "webp"])
             if uploaded_file is not None:
                 ingredients_image = Image.open(uploaded_file)
                 st.image(ingredients_image, caption="Uploaded image", use_container_width=True)
                 
-        elif input_method == "📸 Camera Live":
+        with tab_camera:
             camera_file = st.camera_input("Snapshot product food labels")
             if camera_file is not None:
                 ingredients_image = Image.open(camera_file)
                 st.image(ingredients_image, caption="Captured Image", use_container_width=True)
                 
-        elif input_method == "✍️ Manual Text":
+        with tab_text:
             ingredients_text = st.text_area(
                 "Paste labels text",
                 key="manual_ingredients_text",
@@ -787,7 +779,6 @@ with c1:
         # Callback to load ingredients to session state safely before rendering text area
         def load_demo_ingredients(text_to_load):
             st.session_state.manual_ingredients_text = text_to_load
-            st.session_state.input_method = "✍️ Manual Text"
             st.session_state.just_loaded_text = True
 
         for name, info in SAMPLE_PRODUCTS.items():
