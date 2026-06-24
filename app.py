@@ -8,13 +8,13 @@ import io
 
 # Page Setup & Styling
 st.set_page_config(
-    page_title="PureSource AI - Clean Label Scanner",
+    page_title="PurePulse - Clean Label Scanner",
     page_icon="🌾",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom Natural Tones & PurePlate CSS Styles
+# Custom Natural Tones & PurePulse CSS Styles
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
@@ -73,7 +73,7 @@ st.markdown("""
         margin-bottom: 1.8rem !important;
     }
     
-    /* PurePlate Card & Block aesthetics */
+    /* PurePulse Card & Block aesthetics */
     .natural-card, div[data-testid="stVerticalBlockBorderWrapper"] {
         background-color: #ffffff !important;
         border: 1px solid #e5e1da !important;
@@ -181,7 +181,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Application Logo & Title
-st.markdown('<div class="brand-title">🌾 PurePlate</div>', unsafe_allow_html=True)
+st.markdown('<div class="brand-title">🌾 PurePulse</div>', unsafe_allow_html=True)
 st.markdown('<div class="brand-subtitle">Streamlit Clean Food Ingredients & Alternative Scanner</div>', unsafe_allow_html=True)
 
 # Initialize Session States
@@ -197,33 +197,62 @@ if "manual_ingredients_text" not in st.session_state:
     st.session_state.manual_ingredients_text = ""
 if "just_loaded_text" not in st.session_state:
     st.session_state.just_loaded_text = False
+if "navigation_page" not in st.session_state:
+    st.session_state.navigation_page = "🌾 Ingredient Scanner"
 if "gemini_api_key" not in st.session_state:
     st.session_state.gemini_api_key = os.environ.get("GEMINI_API_KEY", "")
 
 # Sidebar Control Center
 with st.sidebar:
-    st.markdown("### 🛠️ Configuration & API Keys")
-    api_key = st.text_input("Enter GEMINI_API_KEY", type="password", key="gemini_api_key")
-    
-    model_choice = st.selectbox(
-        "Select Model Tier 🧠",
-        options=["gemini-2.5-flash", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.5-pro"],
-        index=0,
-        help="If you encounter HTTP 429 quota/rate limit errors on the Google AI Studio free tier, switch to 'gemini-1.5-flash' for a more robust quota structure."
-    )
-    
-    # Key Acquisition Steps & Security Disclaimer
+    # Custom HTML Header conforming to PurePulse Premium guidelines
     st.markdown("""
-    💡 **Quick Guide: How to get your API Key**
-    1. Go to [Google AI Studio](https://aistudio.google.com/)
-    2. Click **"Get API Key"** (or **"Create API Key"**)
-    3. Generate a free key and paste it in the box above!
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-b: 1px solid #c2c9bb;">
+        <div style="width: 44px; height: 44px; background-color: #2d5a27; display: flex; align-items: center; justify-content: center; color: #9dd090; border-radius: 12px;">
+            <span class="material-symbols-outlined" style="font-size: 24px; color: #9dd090 !important;">eco</span>
+        </div>
+        <div>
+            <h2 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 18px; font-weight: 700; color: #154212; margin: 0; line-height: 1.2;">Health Explorer</h2>
+            <p style="font-family: 'Inter', sans-serif; font-size: 12px; color: #72796e; margin: 0; font-weight: 500;">Premium Member</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
-    🔒 **Privacy, Safety & Session Security Note:**
-    * **Multi-User Session Isolation**: This app runs on Streamlit's secure multi-session architecture. Every connected user/browser tab is running on an entirely independent thread with private local variables and isolated, secure session memory (`st.session_state`).
-    * **No Process-Wide Leakage**: We do not modify global environment variables (`os.environ`) at runtime, guaranteeing your key cannot be seen or accessed by any other simultaneous or future users.
-    * **Transient Storage**: Your API key is stored only inside your active browser session memory. It is **never saved**, written to any database, logged, or archived outside your running app instance.
-    """)
+    st.markdown("### 🧭 Navigation Menu")
+    page_options = ["🌾 Ingredient Scanner", "📊 Analysis Reports", "🌱 Natural Alternatives", "💬 AI Assistant"]
+    
+    # We select page based on radio button
+    selected_page = st.radio(
+        "Go to page:",
+        options=page_options,
+        index=page_options.index(st.session_state.navigation_page),
+        label_visibility="collapsed"
+    )
+    st.session_state.navigation_page = selected_page
+    
+    st.markdown("---")
+    
+    # Put key configuration into an expander to clean up sidebar layout
+    with st.expander("🛠️ Configuration & API Keys", expanded=not bool(st.session_state.gemini_api_key)):
+        api_key = st.text_input("Enter GEMINI_API_KEY", type="password", key="gemini_api_key")
+        
+        model_choice = st.selectbox(
+            "Select Model Tier 🧠",
+            options=["gemini-2.5-flash", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.5-pro"],
+            index=0,
+            help="If you encounter HTTP 429 quota/rate limit errors on the Google AI Studio free tier, switch to 'gemini-1.5-flash' for a more robust quota structure."
+        )
+        
+        # Key Acquisition Steps & Security Disclaimer
+        st.markdown("""
+        💡 **Quick Guide: How to get your API Key**
+        1. Go to [Google AI Studio](https://aistudio.google.com/)
+        2. Click **"Get API Key"** (or **"Create API Key"**)
+        3. Generate a free key and paste it in the box above!
+        
+        🔒 **Privacy, Safety & Session Security Note:**
+        * Every connected user/browser tab is running on an entirely independent thread with private local variables and isolated, secure session memory (`st.session_state`).
+        * Process is fully isolated, guaranteeing your key cannot be seen or accessed by any other simultaneous or future users.
+        """)
     
     st.markdown("---")
     st.markdown("### 📜 Scan Search Logs")
@@ -781,198 +810,245 @@ def get_product_image(product_name: str) -> str:
     elif "cheese" in name or "dip" in name or "nacho" in name or "zesty" in name:
         return "https://lh3.googleusercontent.com/aida-public/AB6AXuA6h8ylJzvEpdeqJh8ClXwp2g92vdsq2oUPx3dOsBHF-Z3qvfUrUspxfGD2iMKCA_W2Jc-KpBfB9SEkkjdLZHEbDWs50Brc34cYMi4FfrRVkkj_BmahsBVPZbZ8KZXevfje6rCOWeLjMWD060_ZE-iqWcECyEcL7YZ1Cdf74ZOVdaktNybF8lsRBJvfq2bC99Z-zPWYVRZoxtQTtRkLppLJgLUsizqf0RteMXFLMhpooGkTlmylJ1377OtzCcPKa9Jk4qmaXBrqBHw"
     else:
-        return "https://lh3.googleusercontent.com/aida-public/AB6AXuBDNigrJ1tDKBQw29K4TC0DsEQUDLXa09ddkDZnmfz3hyGId4Hs6lSxKUO3Rfj6AxTYgCzLxQm0CTIWSVuGmoUYRQuACzDt6fc5AYWxt-4StafhRbCTZjzbb1gcLHki5pKQpKW9aDl9Ij9jVaratGVG9QbUl2Grrk80x8hPYeKQs-dE5NHY7puDEH-MF5To_42fnG-1TRfBlpLLgWEN_rnbTuqfdHWvA1Y0YZfeIAdV8VLI2dhGlg14rURnCcUQsQ4TVQVpa4YxZx8"
-
-# Render main grid columns
-c1, c2 = st.columns([4, 8])
-
-with c1:
-    with st.container(border=True):
-        st.markdown('<div class="natural-card-header">🧪 Decode Food Label</div>', unsafe_allow_html=True)
-        
-        tab_upload, tab_camera, tab_text = st.tabs(["📤 Upload Image", "📸 Camera Live", "✍️ Manual Text"])
-        
-        if st.session_state.get("just_loaded_text", False):
-            st.info("💡 **Demo ingredients loaded!** Select the **✍️ Manual Text** tab above to view/edit them, then click **🌱 Analyze Ingredients Instantly** below to scan.")
-        
-        ingredients_image = None
-        ingredients_text = ""
-        
-        with tab_upload:
-            uploaded_file = st.file_uploader("Upload product ingredient label picture", type=["jpg", "jpeg", "png", "webp"])
-            if uploaded_file is not None:
-                ingredients_image = Image.open(uploaded_file)
-                st.image(ingredients_image, caption="Uploaded image", use_container_width=True)
-                
-        with tab_camera:
-            camera_file = st.camera_input("Snapshot product food labels")
-            if camera_file is not None:
-                ingredients_image = Image.open(camera_file)
-                st.image(ingredients_image, caption="Captured Image", use_container_width=True)
-                
-        with tab_text:
-            ingredients_text = st.text_area(
-                "Paste labels text",
-                key="manual_ingredients_text",
-                placeholder="Example: Water, corn syrup, modified corn starch, red 40, Yellow 5, artificial flavor, sodium benzoate, citric acid..."
-            )
-            
-        st.markdown("---")
-        
-        if st.button("🌱 Analyze Ingredients Instantly", type="primary", use_container_width=True):
-            if not api_key:
-                st.error("Please configure your GEMINI_API_KEY in the sidebar control center first!")
-            else:
-                with st.spinner("Executing biochemical food label analysis..."):
-                    try:
-                        contents_parts = []
-                        if ingredients_image:
-                            buffered = io.BytesIO()
-                            ingredients_image.save(buffered, format="JPEG")
-                            img_bytes = buffered.getvalue()
-                            img_b54 = base64.b64encode(img_bytes).decode("utf-8")
-                            contents_parts.append({
-                                "inlineData": {
-                                    "mimeType": "image/jpeg",
-                                    "data": img_b54
-                                }
-                            })
-                            contents_parts.append({
-                                "text": "Recognize ingredients from this visual packaging scan, isolate lab-made synthetic fillers/synthetic additives, identify biological alternatives, estimate wholesale production cost metrics, extract allergens and certifications, and suggest 1-2 real-life popular cleaner brand alternatives with natural ingredients."
-                            })
-                        elif ingredients_text:
-                            contents_parts.append({
-                                "text": f"Isolate synthetic additives, identify biological alternatives, estimate production cost changes, extract allergens and certifications, and suggest 1-2 real-life popular cleaner brand alternatives with natural ingredients for the following ingredient string:\n\n{ingredients_text}"
-                            })
-                        else:
-                            st.warning("Please provide either an image scan or paste label string before triggering analysis.")
-                            
-                        if len(contents_parts) > 0:
-                            raw_json_str = call_gemini_api(
-                                api_key=api_key,
-                                model=model_choice,
-                                system_instruction="You are an elite food biochemist. Identify food additives, functional purposes, suggest premium natural substitutes, evaluate health risks, compute production cost factors, flag potential certifications, and suggest 1-2 real, cleaner natural-ingredient brand alternatives (like Olipop, Siete Foods, SmartSweets, YumEarth, Primal Kitchen, etc., matching the parsed product category).",
-                                contents_parts=contents_parts,
-                                response_schema=raw_analysis_schema
-                            )
-                            
-                            result = json.loads(raw_json_str)
-                            st.session_state.active_scan = result
-                            st.session_state.selected_ing = result["ingredients"][0] if result["ingredients"] else None
-                            
-                            # Save in session history
-                            st.session_state.history.append({
-                                "type": "image" if ingredients_image else "text",
-                                "data": result
-                            })
-                            
-                            # Initialize conversational chat
-                            st.session_state.chat_history = [{
-                                "role": "model",
-                                "parts": [{"text": f"Successfully parsed '{result['productName']}'! Ask me anything regarding alternatives like production costs or gut health effects."}]
-                            }]
-                            st.session_state.just_loaded_text = False
-                            st.success("Analysis Complete!")
-                            st.rerun()
-                    except Exception as e:
-                        st.error(f"Failed parsing label: {str(e)}")
-
-    # Added Sample Label Quick Loader block
-    with st.container(border=True):
-        st.markdown('<div class="natural-card-header">💡 No products nearby? Scan an online sample label:</div>', unsafe_allow_html=True)
-        st.write("Instant-explore pre-calculated biochemist scans of common grocery items:")
-        
-        # Callback to load ingredients to session state safely before rendering text area
-        def load_demo_ingredients(text_to_load):
-            st.session_state.manual_ingredients_text = text_to_load
-            st.session_state.just_loaded_text = True
-
-        for name, info in SAMPLE_PRODUCTS.items():
-            st.markdown(f"**{name}**")
-            st.caption(f"📝 *Ingredients:* {info['ingredients_text']}")
-            
-            # 50/50 Column split for primary demo trigger and copy action
-            btn_col1, btn_col2 = st.columns(2)
-            clean_name = name.lower().replace(" ", "_")
-            with btn_col1:
-                if st.button("Inspect Demo ⚡", key=f"scan_demo_{clean_name}", type="secondary", use_container_width=True):
-                    st.session_state.active_scan = info["analysis"]
-                    st.session_state.selected_ing = info["analysis"]["ingredients"][0] if info["analysis"]["ingredients"] else None
-                    st.session_state.just_loaded_text = False
-                    st.session_state.chat_history = [{
-                        "role": "model",
-                        "parts": [{"text": f"Successfully loaded pre-analyzed biochemist metadata for '{info['analysis']['productName']}'! Explore ingredients in the audit dashboard & ask questions below."}]
-                    }]
-                    st.success(f"Demonstration Loaded for '{name}'!")
-                    st.rerun()
-            with btn_col2:
-                st.button(
-                    "Load & Copy ✍️", 
-                    key=f"copy_demo_{clean_name}", 
-                    type="secondary", 
-                    use_container_width=True,
-                    on_click=load_demo_ingredients,
-                    args=(info["ingredients_text"],)
-                )
-            st.markdown('<div style="margin-bottom: 12px; border-bottom: 1px solid #ECEFE8; padding-bottom: 12px;"></div>', unsafe_allow_html=True)
+        return "https://lh3.googleusercontent.com/aida-public/AB6AXuBDNigrJ1tDKBQw29K4TC0DsEQUDLXa09ddkDZnmfz3hyGId4Hs6lSxKUO3Rfj6AxTYgCzLxQm0CTIWSVuGmoUYRQuACzDt6fc5AYWxt-4StafhRbCTZjzbb1gcLHki5pKQpKW9aDl9Ij9jVaratGVG9QbUl2Grrk80x8hPYeKQs-dE5NHY7puDEH-MF5To_42fnG-1TRfBlpLLgWEN_rnbTuqfdHWvA1Y0YZ# Render Content Based on the Sidebar Navigation Menu
+if st.session_state.navigation_page == "🌾 Ingredient Scanner":
+    c1, c2 = st.columns([5, 7])
     
-    # Embedded Chat Widget if a scan exists
-    if st.session_state.active_scan:
+    with c1:
         with st.container(border=True):
-            st.markdown('<div class="natural-card-header">💬 Ask Clean Label Guide</div>', unsafe_allow_html=True)
+            st.markdown('<div class="natural-card-header">🧪 Decode Food Label</div>', unsafe_allow_html=True)
             
-            # Display chat conversation
-            chat_container = st.container(height=300)
-            with chat_container:
-                for message in st.session_state.chat_history:
-                    role = "assistant" if message["role"] == "model" else "user"
-                    with st.chat_message(role):
-                        st.write(message["parts"][0]["text"])
-                        
-            # Chat input element
-            user_query = st.chat_input("Ask a question about food safety alternatives...")
-            if user_query:
-                # Append user message
-                st.session_state.chat_history.append({"role": "user", "parts": [{"text": user_query}]})
+            tab_upload, tab_camera, tab_text = st.tabs(["📤 Upload Image", "📸 Camera Live", "✍️ Manual Text"])
+            
+            if st.session_state.get("just_loaded_text", False):
+                st.info("💡 **Demo ingredients loaded!** Select the **✍️ Manual Text** tab above to view/edit them, then click **🌱 Analyze Ingredients Instantly** below to scan.")
+            
+            ingredients_image = None
+            ingredients_text = ""
+            
+            with tab_upload:
+                uploaded_file = st.file_uploader("Upload product ingredient label picture", type=["jpg", "jpeg", "png", "webp"])
+                if uploaded_file is not None:
+                    ingredients_image = Image.open(uploaded_file)
+                    st.image(ingredients_image, caption="Uploaded image", use_container_width=True)
+                    
+            with tab_camera:
+                camera_file = st.camera_input("Snapshot product food labels")
+                if camera_file is not None:
+                    ingredients_image = Image.open(camera_file)
+                    st.image(ingredients_image, caption="Captured Image", use_container_width=True)
+                    
+            with tab_text:
+                ingredients_text = st.text_area(
+                    "Paste labels text",
+                    key="manual_ingredients_text",
+                    placeholder="Example: Water, corn syrup, modified corn starch, red 40, Yellow 5, artificial flavor, sodium benzoate, citric acid..."
+                )
                 
+            st.markdown("---")
+            
+            if st.button("🌱 Analyze Ingredients Instantly", type="primary", use_container_width=True):
                 if not api_key:
-                    st.error("Please configure API key first.")
+                    st.error("Please configure your GEMINI_API_KEY in the sidebar control center first!")
                 else:
-                    try:
-                        with st.spinner("Connecting to biochemistry researcher database..."):
-                            # Prepare context
-                            sys_instruction = f"""You are 'Clean Label Guide', an expert biochemist discussing '{st.session_state.active_scan['productName']}' packaged food.
-                            Here is the analyzed food context to build accurate details from:
-                            {json.dumps(st.session_state.active_scan)}
-                            
-                            Answer questions simply and beautifully, providing science-backed research without confusing jargon."""
-                            
-                            assistant_reply = call_gemini_chat(
-                                api_key=api_key,
-                                model=model_choice,
-                                system_instruction=sys_instruction,
-                                history=st.session_state.chat_history[:-1],
-                                new_user_message=user_query
-                            )
-                            
-                            st.session_state.chat_history.append({"role": "model", "parts": [{"text": assistant_reply}]})
-                            st.rerun()
-                    except Exception as e:
-                        st.error(f"Chat error: {str(e)}")
+                    with st.spinner("Executing biochemical food label analysis..."):
+                        try:
+                            contents_parts = []
+                            if ingredients_image:
+                                buffered = io.BytesIO()
+                                ingredients_image.save(buffered, format="JPEG")
+                                img_bytes = buffered.getvalue()
+                                img_b54 = base64.b64encode(img_bytes).decode("utf-8")
+                                contents_parts.append({
+                                    "inlineData": {
+                                        "mimeType": "image/jpeg",
+                                        "data": img_b54
+                                    }
+                                })
+                                contents_parts.append({
+                                    "text": "Recognize ingredients from this visual packaging scan, isolate lab-made synthetic fillers/synthetic additives, identify biological alternatives, estimate wholesale production cost metrics, extract allergens and certifications, and suggest 1-2 real-life popular cleaner brand alternatives with natural ingredients."
+                                })
+                            elif ingredients_text:
+                                contents_parts.append({
+                                    "text": f"Isolate synthetic additives, identify biological alternatives, estimate production cost changes, extract allergens and certifications, and suggest 1-2 real-life popular cleaner brand alternatives with natural ingredients for the following ingredient string:\n\n{ingredients_text}"
+                                })
+                            else:
+                                st.warning("Please provide either an image scan or paste label string before triggering analysis.")
+                                
+                            if len(contents_parts) > 0:
+                                raw_json_str = call_gemini_api(
+                                    api_key=api_key,
+                                    model=model_choice,
+                                    system_instruction="You are an elite food biochemist. Identify food additives, functional purposes, suggest premium natural substitutes, evaluate health risks, compute production cost factors, flag potential certifications, and suggest 1-2 real, cleaner natural-ingredient brand alternatives (like Olipop, Siete Foods, SmartSweets, YumEarth, Primal Kitchen, etc., matching the parsed product category).",
+                                    contents_parts=contents_parts,
+                                    response_schema=raw_analysis_schema
+                                )
+                                
+                                result = json.loads(raw_json_str)
+                                st.session_state.active_scan = result
+                                st.session_state.selected_ing = result["ingredients"][0] if result["ingredients"] else None
+                                
+                                # Save in session history
+                                st.session_state.history.append({
+                                    "type": "image" if ingredients_image else "text",
+                                    "data": result
+                                })
+                                
+                                # Initialize conversational chat
+                                st.session_state.chat_history = [{
+                                    "role": "model",
+                                    "parts": [{"text": f"Successfully parsed '{result['productName']}'! Ask me anything regarding alternatives like production costs or gut health effects."}]
+                                }]
+                                st.session_state.just_loaded_text = False
+                                st.success("Analysis Complete!")
+                                st.rerun()
+                        except Exception as e:
+                            st.error(f"Failed parsing label: {str(e)}")
 
-with c2:
+        # Sample Label Quick Loader block
+        with st.container(border=True):
+            st.markdown('<div class="natural-card-header">💡 No products nearby? Scan an online sample label:</div>', unsafe_allow_html=True)
+            st.write("Instant-explore pre-calculated biochemist scans of common grocery items:")
+            
+            # Callback to load ingredients to session state safely before rendering text area
+            def load_demo_ingredients(text_to_load):
+                st.session_state.manual_ingredients_text = text_to_load
+                st.session_state.just_loaded_text = True
+
+            for name, info in SAMPLE_PRODUCTS.items():
+                st.markdown(f"**{name}**")
+                st.caption(f"📝 *Ingredients:* {info['ingredients_text']}")
+                
+                # 50/50 Column split for primary demo trigger and copy action
+                btn_col1, btn_col2 = st.columns(2)
+                clean_name = name.lower().replace(" ", "_")
+                with btn_col1:
+                    if st.button("Inspect Demo ⚡", key=f"scan_demo_{clean_name}", type="secondary", use_container_width=True):
+                        st.session_state.active_scan = info["analysis"]
+                        st.session_state.selected_ing = info["analysis"]["ingredients"][0] if info["analysis"]["ingredients"] else None
+                        st.session_state.just_loaded_text = False
+                        st.session_state.chat_history = [{
+                            "role": "model",
+                            "parts": [{"text": f"Successfully loaded pre-analyzed biochemist metadata for '{info['analysis']['productName']}'! Explore ingredients in the audit dashboard & ask questions below."}]
+                        }]
+                        st.success(f"Demonstration Loaded for '{name}'!")
+                        st.rerun()
+                with btn_col2:
+                    st.button(
+                        "Load & Copy ✍️", 
+                        key=f"copy_demo_{clean_name}", 
+                        type="secondary", 
+                        use_container_width=True,
+                        on_click=load_demo_ingredients,
+                        args=(info["ingredients_text"],)
+                    )
+                st.markdown('<div style="margin-bottom: 12px; border-bottom: 1px solid #ECEFE8; padding-bottom: 12px;"></div>', unsafe_allow_html=True)
+                
+    with c2:
+        if st.session_state.active_scan:
+            scan = st.session_state.active_scan
+            synthetics_list = [i for i in scan['ingredients'] if i['isSynthetic']]
+            synthetics_count = len(synthetics_list)
+            allergens_count = len(scan['allergens'])
+            score_value = max(15, min(99, 100 - (synthetics_count * 15)))
+            score_decimal = round(score_value / 10, 1)
+            product_img_url = get_product_image(scan['productName'])
+            
+            st.markdown(f"""
+            <div class="natural-card" style="display: flex; gap: 20px; align-items: center; padding: 24px !important; border: 2px solid #2d5a27 !important; background-color: #f1f4ed !important;">
+                <div style="flex-shrink: 0; width: 80px; height: 80px; border-radius: 12px; overflow: hidden; border: 1px solid #e5e1da;">
+                    <img src="{product_img_url}" style="width: 100%; height: 100%; object-fit: cover;" referrerPolicy="no-referrer" />
+                </div>
+                <div style="flex-grow: 1;">
+                    <span style="background-color: #2d5a27; color: #ffffff; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; padding: 4px 10px; border-radius: 99px; font-weight: 700; margin-bottom: 6px; display: inline-block;">🎉 Chemical Scan Complete!</span>
+                    <h2 style="margin: 0 0 4px 0; color: #154212; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.01em;">{scan['productName']}</h2>
+                    <p style="color: #42493e; margin: 0; font-size: 0.9rem; line-height: 1.4; font-family: 'Inter', sans-serif;">Purity score: <b>{score_decimal} / 10</b>. Deep-dive ingredients, alternatives, and economics are compiled below.</p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            with st.container(border=True):
+                st.markdown('<div class="natural-card-header"><span class="material-symbols-outlined">launch</span> Explore Scan Insights</div>', unsafe_allow_html=True)
+                st.write("Your packaging ingredients have been successfully parsed! Switch pages using the options below or the sidebar to explore reports:")
+                
+                # Dynamic action buttons
+                col_b1, col_b2, col_b3 = st.columns(3)
+                with col_b1:
+                    if st.button("📊 View Ingredient Audit", use_container_width=True, type="primary"):
+                        st.session_state.navigation_page = "📊 Analysis Reports"
+                        st.rerun()
+                with col_b2:
+                    if st.button("🌱 View Natural Alternatives", use_container_width=True, type="primary"):
+                        st.session_state.navigation_page = "🌱 Natural Alternatives"
+                        st.rerun()
+                with col_b3:
+                    if st.button("💬 Chat with AI Guide", use_container_width=True, type="primary"):
+                        st.session_state.navigation_page = "💬 AI Assistant"
+                        st.rerun()
+                        
+            st.markdown("---")
+            
+        # Welcome Hero & Bento Grid
+        st.markdown("""
+        <div style="position: relative; border-radius: 16px; overflow: hidden; height: 200px; margin-bottom: 24px; box-shadow: 0 8px 24px rgba(45,90,39,0.06);">
+            <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(21, 66, 18, 0.75) 0%, rgba(21, 66, 18, 0.15) 100%); z-index: 10;"></div>
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcLXJfKMP_1hYPKa4QJA7VErw23JRlf2Fx4Kl9X3qnw1y2eGNVpFcQrCB3_omsqhyjAfTFyEFA4kGAd4M949RnkYpwVmv75T0z0B3_td45YmtKl8yVGsDT6gR1WhNRXhySLwPB6poG6rWT6K8VEB5gb3wepNwqmn5Pnq6eiFSWQavenjQ-_4H-52ELx6-UZkgXxyGHLsqHJgrO2j-zwbPQK-Kv64SJdp7N2aom3UdCnXC91xaBjfS__bKmrsh1fbfrBH2A07G76Nc" style="width: 100%; height: 100%; object-fit: cover;" />
+            <div style="position: absolute; bottom: 20px; left: 20px; z-index: 20;">
+                <span style="background-color: #ccebc7; color: #154212; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; padding: 4px 10px; border-radius: 99px; font-weight: 700; margin-bottom: 8px; display: inline-block;">Welcome to PurePulse</span>
+                <h2 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 26px; font-weight: 800; color: #ffffff; margin: 0; line-height: 1.2; letter-spacing: -0.01em;">Empower Your Plate</h2>
+            </div>
+        </div>
+        
+        <p style="color: #42493e; font-size: 15px; line-height: 1.6; margin-bottom: 24px; font-family: 'Inter', sans-serif;">
+            Experience clarity in every bite. Our AI-driven biochemist engine deciphers complex food labels to reveal the true nutritional essence of your groceries, highlighting synthetic additives and presenting premium, whole-food alternative pathways.
+        </p>
+        """, unsafe_allow_html=True)
+        
+        # Bento Grid Insights
+        st.markdown("""
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px;">
+            <div style="background-color: #ffffff; border: 1px solid #e5e1da; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(45,90,39,0.02); display: flex; flex-direction: column; gap: 4px;">
+                <span class="material-symbols-outlined" style="color: #154212; font-size: 28px; font-variation-settings: 'FILL' 1;">verified</span>
+                <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 700; color: #154212; margin: 8px 0 2px 0;">Safe Ingredients</h3>
+                <p style="font-size: 32px; font-weight: 800; color: #154212; margin: 0; line-height: 1;">84%</p>
+                <p style="font-size: 12px; color: #72796e; margin: 4px 0 0 0;">Average scan match purity</p>
+            </div>
+            <div style="background-color: #ffffff; border: 1px solid #e5e1da; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(45,90,39,0.02); display: flex; flex-direction: column; gap: 4px;">
+                <span class="material-symbols-outlined" style="color: #ba1a1a; font-size: 28px; font-variation-settings: 'FILL' 1;">warning</span>
+                <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 700; color: #ba1a1a; margin: 8px 0 2px 0;">Additives Alert</h3>
+                <p style="font-size: 32px; font-weight: 800; color: #ba1a1a; margin: 0; line-height: 1;">12</p>
+                <p style="font-size: 12px; color: #72796e; margin: 4px 0 0 0;">Detected in recent community scans</p>
+            </div>
+        </div>
+        
+        <div style="background-color: #ccebc7; border: 1px solid #b0cfad; padding: 20px; border-radius: 16px; display: flex; align-items: start; gap: 16px; margin-bottom: 28px; box-shadow: 0 4px 12px rgba(45,90,39,0.02);">
+            <span class="material-symbols-outlined" style="color: #154212; font-size: 32px; flex-shrink: 0;">lightbulb</span>
+            <div>
+                <h4 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 700; color: #154212; margin: 0 0 4px 0;">PurePulse AI Intelligence Tip</h4>
+                <p style="font-size: 13.5px; color: #154212; margin: 0; line-height: 1.5;">\"Transitioning from synthetic emulsifiers like disodium phosphate or stabilizers like maltodextrin to whole-food binding alternatives can dramatically reduce metabolic and digestive stress.\"</p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Guide on how to get started
+        with st.container(border=True):
+            st.markdown('<div class="natural-card-header"><span class="material-symbols-outlined">help_outline</span> Quick Start Guidance</div>', unsafe_allow_html=True)
+            st.markdown("""
+            Ready to audit your ingredients? Provide your Gemini API key in the configuration sidebar, then:
+            - **Upload an Image**: Take or upload a photo of any packaged food's ingredient panel on the left.
+            - **📸 Camera Live**: Take a quick, real-time snapshot with your webcam or camera.
+            - **Manual Text Input**: Paste the raw ingredient text string directly into the text box.
+            - **Explore Sample Labels**: Click any item in the online sample label loader below to instant-scout!
+            """)
+
+elif st.session_state.navigation_page == "📊 Analysis Reports":
     if st.session_state.active_scan:
         scan = st.session_state.active_scan
-        
-        # Calculate dynamic safety metrics
         synthetics_list = [i for i in scan['ingredients'] if i['isSynthetic']]
         synthetics_count = len(synthetics_list)
         allergens_count = len(scan['allergens'])
-        
-        # Calculate score from 15 to 99 based on synthetic count
         score_value = max(15, min(99, 100 - (synthetics_count * 15)))
         score_decimal = round(score_value / 10, 1)
-        
         product_img_url = get_product_image(scan['productName'])
         
         # Premium Product Summary Card
@@ -984,7 +1060,7 @@ with c2:
             <div style="flex-grow: 1;">
                 <div style="display: flex; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;">
                     <span class="natural-badge-green">Synthetics Identified: {synthetics_count}</span>
-                    <span class="{"natural-badge-red" if allergens_count > 0 else "natural-badge-green"}">{allergens_count} Allergens</span>
+                    <span class="{'natural-badge-red' if allergens_count > 0 else 'natural-badge-green'}">{allergens_count} Allergens</span>
                 </div>
                 <h2 style="margin: 0 0 6px 0; color: #154212; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 24px; font-weight: 800; letter-spacing: -0.01em;">{scan['productName']}</h2>
                 <p style="color: #42493e; margin: 0; font-size: 0.95rem; line-height: 1.5; font-family: 'Inter', sans-serif;">{scan['summaryText']}</p>
@@ -1037,9 +1113,8 @@ with c2:
                 st.write("Click any ingredient below to inspect health risk levels and natural alternative replacements:")
                 
                 for ing in scan["ingredients"]:
-                    # Beautiful prefixing matching Stitch designs
                     ing_label = f"🧪 {ing['name']}" if ing["isSynthetic"] else f"🌱 {ing['name']}"
-                    if st.button(ing_label, key=f"ing_btn_{ing['name']}", use_container_width=True):
+                    if st.button(ing_label, key=f"ing_report_btn_{ing['name']}", use_container_width=True):
                         st.session_state.selected_ing = ing
             
         with sub_c2:
@@ -1060,7 +1135,6 @@ with c2:
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    # Risk level assessment pill
                     risk = sel["healthImpactLevel"]
                     risk_badge_class = "natural-badge-red" if "Warning" in risk or "Concern" in risk else "natural-badge-green"
                     st.markdown(f"**Safety Classification Profile:** <span class='{risk_badge_class}'>{risk}</span>", unsafe_allow_html=True)
@@ -1096,8 +1170,26 @@ with c2:
                     else:
                         st.write("*No direct single natural replacement can functionally match. Synthetic necessary for shelf retention.*")
                 else:
-                    st.write("Please select an ingredient from the audit list on the left to review alternative pathways.")
-            
+                    st.info("Please select an ingredient from the audit list on the left to review alternative pathways.")
+    else:
+        st.markdown("""
+        <div style="background-color: #ffffff; border: 1px solid #e5e1da; border-radius: 16px; padding: 40px; text-align: center; max-width: 600px; margin: 40px auto; box-shadow: 0 4px 12px rgba(45,90,39,0.02);">
+            <span class="material-symbols-outlined" style="font-size: 48px; color: #154212; margin-bottom: 16px;">analytics</span>
+            <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; font-weight: 700; color: #154212; margin: 0 0 8px 0;">No Analysis Report Loaded</h3>
+            <p style="color: #72796e; font-size: 14px; line-height: 1.6; margin-bottom: 24px;">You need to scan a food label on the main page to populate and explore deep biochemical analyses.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Go to Ingredient Scanner 🌾", type="primary", use_container_width=True):
+            st.session_state.navigation_page = "🌾 Ingredient Scanner"
+            st.rerun()
+
+elif st.session_state.navigation_page == "🌱 Natural Alternatives":
+    if st.session_state.active_scan:
+        scan = st.session_state.active_scan
+        
+        st.markdown("## Natural Alternatives Explorer")
+        st.write("Swap synthetic additives for clean, botanical replacements based on your scanned ingredients.")
+        
         # Cleaner Brand Alternatives Section
         if "cleanerProductSuggestions" in scan and scan["cleanerProductSuggestions"]:
             with st.container(border=True):
@@ -1125,7 +1217,6 @@ with c2:
             
             nested_c1, nested_c2 = st.columns([5, 7])
             with nested_c1:
-                # Beautiful side-by-side comparison bars mimicking Google Stitch layouts
                 st.markdown(f"""
                 <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 12px;">
                     <div>
@@ -1173,65 +1264,75 @@ with c2:
                         st.caption(cert["explanation"])
             else:
                 st.info("No dietary certifications analyzed for this label.")
-        
     else:
-        # Initial greeting and demo featuring PurePlate Welcome Hero & Bento Grid
         st.markdown("""
-        <div style="position: relative; border-radius: 16px; overflow: hidden; height: 200px; margin-bottom: 24px; box-shadow: 0 8px 24px rgba(45,90,39,0.06);">
-            <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(21, 66, 18, 0.75) 0%, rgba(21, 66, 18, 0.15) 100%); z-index: 10;"></div>
-            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcLXJfKMP_1hYPKa4QJA7VErw23JRlf2Fx4Kl9X3qnw1y2eGNVpFcQrCB3_omsqhyjAfTFyEFA4kGAd4M949RnkYpwVmv75T0z0B3_td45YmtKl8yVGsDT6gR1WhNRXhySLwPB6poG6rWT6K8VEB5gb3wepNwqmn5Pnq6eiFSWQavenjQ-_4H-52ELx6-UZkgXxyGHLsqHJgrO2j-zwbPQK-Kv64SJdp7N2aom3UdCnXC91xaBjfS__bKmrsh1fbfrBH2A07G76Nc" style="width: 100%; height: 100%; object-fit: cover;" />
-            <div style="position: absolute; bottom: 20px; left: 20px; z-index: 20;">
-                <span style="background-color: #ccebc7; color: #154212; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; padding: 4px 10px; border-radius: 99px; font-weight: 700; margin-bottom: 8px; display: inline-block;">Welcome to PurePlate</span>
-                <h2 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 26px; font-weight: 800; color: #ffffff; margin: 0; line-height: 1.2; letter-spacing: -0.01em;">Empower Your Plate</h2>
-            </div>
-        </div>
-        
-        <p style="color: #42493e; font-size: 15px; line-height: 1.6; margin-bottom: 24px; font-family: 'Inter', sans-serif;">
-            Experience clarity in every bite. Our AI-driven biochemist engine deciphers complex food labels to reveal the true nutritional essence of your groceries, highlighting synthetic additives and presenting premium, whole-food alternative pathways.
-        </p>
-        """, unsafe_allow_html=True)
-        
-        # Bento Grid Insights
-        st.markdown("""
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px;">
-            <div style="background-color: #ffffff; border: 1px solid #e5e1da; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(45,90,39,0.02); display: flex; flex-direction: column; gap: 4px;">
-                <span class="material-symbols-outlined" style="color: #154212; font-size: 28px; font-variation-settings: 'FILL' 1;">verified</span>
-                <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 700; color: #154212; margin: 8px 0 2px 0;">Safe Ingredients</h3>
-                <p style="font-size: 32px; font-weight: 800; color: #154212; margin: 0; line-height: 1;">84%</p>
-                <p style="font-size: 12px; color: #72796e; margin: 4px 0 0 0;">Average scan match purity</p>
-            </div>
-            <div style="background-color: #ffffff; border: 1px solid #e5e1da; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(45,90,39,0.02); display: flex; flex-direction: column; gap: 4px;">
-                <span class="material-symbols-outlined" style="color: #ba1a1a; font-size: 28px; font-variation-settings: 'FILL' 1;">warning</span>
-                <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 700; color: #ba1a1a; margin: 8px 0 2px 0;">Additives Alert</h3>
-                <p style="font-size: 32px; font-weight: 800; color: #ba1a1a; margin: 0; line-height: 1;">12</p>
-                <p style="font-size: 12px; color: #72796e; margin: 4px 0 0 0;">Detected in recent community scans</p>
-            </div>
-        </div>
-        
-        <div style="background-color: #ccebc7; border: 1px solid #b0cfad; padding: 20px; border-radius: 16px; display: flex; align-items: start; gap: 16px; margin-bottom: 28px; box-shadow: 0 4px 12px rgba(45,90,39,0.02);">
-            <span class="material-symbols-outlined" style="color: #154212; font-size: 32px; flex-shrink: 0;">lightbulb</span>
-            <div>
-                <h4 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 700; color: #154212; margin: 0 0 4px 0;">PurePlate AI Intelligence Tip</h4>
-                <p style="font-size: 13.5px; color: #154212; margin: 0; line-height: 1.5;">"Transitioning from synthetic emulsifiers like disodium phosphate or stabilizers like maltodextrin to whole-food binding alternatives can dramatically reduce metabolic and digestive stress."</p>
-            </div>
+        <div style="background-color: #ffffff; border: 1px solid #e5e1da; border-radius: 16px; padding: 40px; text-align: center; max-width: 600px; margin: 40px auto; box-shadow: 0 4px 12px rgba(45,90,39,0.02);">
+            <span class="material-symbols-outlined" style="font-size: 48px; color: #154212; margin-bottom: 16px;">eco</span>
+            <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; font-weight: 700; color: #154212; margin: 0 0 8px 0;">No Alternatives Loaded</h3>
+            <p style="color: #72796e; font-size: 14px; line-height: 1.6; margin-bottom: 24px;">Please scan a food label first to retrieve organic substitutes, suggestions, and wholesale cost estimations.</p>
         </div>
         """, unsafe_allow_html=True)
-        
-        # Guide on how to get started
-        with st.container(border=True):
-            st.markdown('<div class="natural-card-header"><span class="material-symbols-outlined">help_outline</span> Quick Start Guidance</div>', unsafe_allow_html=True)
-            st.markdown("""
-            Ready to audit your ingredients? Provide your Gemini API key in the configuration sidebar, then:
-            - **Upload an Image**: Take or upload a photo of any packaged food's ingredient panel on the left.
-            - **📸 Camera Live**: Take a quick, real-time snapshot with your webcam or camera.
-            - **Manual Text Input**: Paste the raw ingredient text string directly into the text box.
-            - **Explore Sample Labels**: Click any item in the online sample label loader below to instant-scout!
-            """)
+        if st.button("Go to Ingredient Scanner 🌾", type="primary", use_container_width=True):
+            st.session_state.navigation_page = "🌾 Ingredient Scanner"
+            st.rerun()
 
-# Elegant Footer conforming to PurePlate Premium guidelines
+elif st.session_state.navigation_page == "💬 AI Assistant":
+    st.markdown("## PurePulse AI Assistant")
+    st.write("Discuss packaging audits, synthetic risks, and natural ingredients with our expert Clean Label Guide.")
+    
+    # Render chat container
+    chat_container = st.container(height=450)
+    with chat_container:
+        if len(st.session_state.chat_history) == 0:
+            st.markdown("""
+            <div style="text-align: center; color: #72796e; padding-top: 60px;">
+                <span class="material-symbols-outlined" style="font-size: 48px; margin-bottom: 12px; color: #2d5a27;">chat</span>
+                <p style="margin: 0; font-size: 14px; font-weight: 600;">Welcome to Clean Label Assistant!</p>
+                <p style="margin: 4px 0 0 0; font-size: 12px;">Ask any question about synthetic additives, biological substitutes, or healthy brands.</p>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            for message in st.session_state.chat_history:
+                role = "assistant" if message["role"] == "model" else "user"
+                with st.chat_message(role):
+                    st.write(message["parts"][0]["text"])
+                    
+    user_query = st.chat_input("Ask a question about food safety alternatives...")
+    if user_query:
+        # Append user message
+        st.session_state.chat_history.append({"role": "user", "parts": [{"text": user_query}]})
+        
+        if not api_key:
+            st.error("Please configure API key first.")
+        else:
+            try:
+                with st.spinner("Connecting to biochemistry researcher database..."):
+                    # Prepare context
+                    product_context = json.dumps(st.session_state.active_scan) if st.session_state.active_scan else "No scanned product currently active."
+                    sys_instruction = f"""You are 'Clean Label Guide', an expert food biochemist.
+                    Discuss packaged foods, synthetic additives, and whole-food replacements.
+                    Active product context:
+                    {product_context}
+                    
+                    Answer questions simply and beautifully, providing science-backed research without confusing jargon."""
+                    
+                    assistant_reply = call_gemini_chat(
+                        api_key=api_key,
+                        model=model_choice,
+                        system_instruction=sys_instruction,
+                        history=st.session_state.chat_history[:-1],
+                        new_user_message=user_query
+                    )
+                    
+                    st.session_state.chat_history.append({"role": "model", "parts": [{"text": assistant_reply}]})
+                    st.rerun()
+            except Exception as e:
+                st.error(f"Chat error: {str(e)}")
+
+# Elegant Footer conforming to PurePulse Premium guidelines
 st.markdown("""
 <div style="margin-top: 60px; padding: 24px 0; border-top: 1px solid #e5e1da; display: flex; justify-content: space-between; font-size: 11px; color: #72796e; font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: 0.08em; text-transform: uppercase;">
-    <div>PurePlate Premium Scanner • Streamlit Engine v1.2.0</div>
+    <div>PurePulse Premium Scanner • Streamlit Engine v1.2.0</div>
     <div>EWG Verified • Clean Label Standards & Transparency</div>
 </div>
 """, unsafe_allow_html=True)
