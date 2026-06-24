@@ -152,9 +152,32 @@ st.markdown("""
     /* Force internal elements inside buttons to inherit color and font family correctly */
     div.stButton > button p,
     div.stButton > button span,
-    div.stButton > button div {
+    div.stButton > button div,
+    div.stButton > button * {
         color: inherit !important;
         font-family: 'Inter', sans-serif !important;
+    }
+    
+    /* Force sidebar collapse / expand arrow buttons to be clearly visible with brand color */
+    div[data-testid="stSidebarCollapseButton"] button,
+    div[data-testid="stSidebarCollapseButton"] button svg,
+    div[data-testid="stSidebarCollapseButton"] svg,
+    button[data-testid="stSidebarCollapseButton"],
+    button[data-testid="collapsedSidebarCodegen"],
+    div[data-testid="stSidebarCollapseButton"] * {
+        color: #154212 !important;
+        fill: #154212 !important;
+    }
+    
+    /* Ensure sidebar radio navigation buttons are cleanly spaced with comfortable padding to prevent overlapping */
+    div[data-testid="stSidebar"] div[role="radiogroup"] label {
+        padding: 0.6rem 0.9rem !important;
+        margin: 0.25rem 0 !important;
+        line-height: 1.4 !important;
+        display: flex !important;
+        align-items: center !important;
+        font-family: 'Inter', sans-serif !important;
+        color: #42493e !important;
     }
     
     /* Streamlit Tab Styles override */
@@ -228,6 +251,44 @@ if "navigation_page" not in st.session_state:
     st.session_state.navigation_page = "🌾 Ingredient Scanner"
 if "gemini_api_key" not in st.session_state:
     st.session_state.gemini_api_key = os.environ.get("GEMINI_API_KEY", "")
+if "available_models" not in st.session_state:
+    st.session_state.available_models = []
+if "last_api_key_for_models" not in st.session_state:
+    st.session_state.last_api_key_for_models = ""
+
+# Helper function to query Gemini API available models for the user's key & region
+def get_available_gemini_models(api_key: str) -> list:
+    if not api_key:
+        return []
+    try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
+        res = requests.get(url, timeout=10)
+        if res.status_code == 200:
+            data = res.json()
+            models_list = []
+            for m in data.get("models", []):
+                name = m.get("name", "")
+                if name.startswith("models/"):
+                    name = name[7:]
+                methods = m.get("supportedGenerationMethods", [])
+                if "generateContent" in methods:
+                    models_list.append(name)
+            return models_list
+    except Exception:
+        pass
+    return []
+
+def get_cached_available_models(api_key: str) -> list:
+    if not api_key:
+        return []
+    if st.session_state.last_api_key_for_models == api_key and st.session_state.available_models:
+        return st.session_state.available_models
+    
+    models = get_available_gemini_models(api_key)
+    if models:
+        st.session_state.available_models = models
+        st.session_state.last_api_key_for_models = api_key
+    return models
 
 # Sidebar Control Center
 with st.sidebar:
@@ -262,9 +323,26 @@ with st.sidebar:
     with st.expander("🛠️ Configuration & API Keys", expanded=not bool(st.session_state.gemini_api_key)):
         api_key = st.text_input("Enter GEMINI_API_KEY", type="password", key="gemini_api_key")
         
+        # Dynamically fetch available models based on user key
+        avail_models = get_cached_available_models(st.session_state.gemini_api_key)
+        default_options = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash-lite"]
+        
+        if avail_models:
+            options = []
+            for m in default_options:
+                if m in avail_models:
+                    options.append(m)
+            for m in avail_models:
+                if m not in options:
+                    options.append(m)
+            if not options:
+                options = default_options
+        else:
+            options = default_options
+            
         model_choice = st.selectbox(
             "Select Model Tier 🧠",
-            options=["gemini-2.5-flash", "gemini-2.5-pro", "gemini-1.5-flash", "gemini-1.5-pro"],
+            options=options,
             index=0,
             help="Select the preferred Gemini model tier. If a model encounters high demand or temporary errors, the app will automatically fall back to alternative models."
         )
@@ -279,6 +357,7 @@ with st.sidebar:
         🔒 **Privacy, Safety & Session Security Note:**
         * Every connected user/browser tab is running on an entirely independent thread with private local variables and isolated, secure session memory (`st.session_state`).
         * Process is fully isolated, guaranteeing your key cannot be seen or accessed by any other simultaneous or future users.
+        * The models dropdown automatically queries Gemini service to show ONLY the models enabled for your region and key.
         """)
     
     st.markdown("---")
@@ -298,14 +377,33 @@ with st.sidebar:
 
 # Helper function to call Gemini API directly via requests with smart fallback logic
 def call_gemini_api(api_key: str, model: str, system_instruction: str, contents_parts: list, response_schema: dict = None) -> str:
-    # List of stable models to try in case of 503/429/404 errors
-    fallback_sequence = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-1.5-pro", "gemini-1.5-flash"]
+    # Get actual available models from the key/region
+    avail_models = get_cached_available_models(api_key)
     
-    # Ensure the requested model is tried first
-    models_to_try = [model]
-    for m in fallback_sequence:
-        if m not in models_to_try:
-            models_to_try.append(m)
+    # Preferred sequence of stable fallback models
+    fallback_sequence = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash-lite"]
+    
+    # Dynamically build our models_to_try based on what is actually available in the region/project
+    models_to_try = []
+    
+    if avail_models:
+        # 1. Put the requested model first if it is available
+        if model in avail_models:
+            models_to_try.append(model)
+        # 2. Add fallback models that are available
+        for m in fallback_sequence:
+            if m in avail_models and m not in models_to_try:
+                models_to_try.append(m)
+        # 3. Add any other available models just in case
+        for m in avail_models:
+            if m not in models_to_try:
+                models_to_try.append(m)
+    else:
+        # If the models list endpoint is not accessible (e.g. timeout), fall back to standard list
+        models_to_try = [model]
+        for m in fallback_sequence:
+            if m not in models_to_try:
+                models_to_try.append(m)
             
     last_error_msg = ""
     for idx, current_model in enumerate(models_to_try):
@@ -361,14 +459,33 @@ def call_gemini_api(api_key: str, model: str, system_instruction: str, contents_
     raise Exception(f"Gemini API Error (all fallback options failed). Last error: {last_error_msg}")
 
 def call_gemini_chat(api_key: str, model: str, system_instruction: str, history: list, new_user_message: str) -> str:
-    # List of stable models to try in case of 503/429/404 errors
-    fallback_sequence = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-1.5-pro", "gemini-1.5-flash"]
+    # Get actual available models from the key/region
+    avail_models = get_cached_available_models(api_key)
     
-    # Ensure the requested model is tried first
-    models_to_try = [model]
-    for m in fallback_sequence:
-        if m not in models_to_try:
-            models_to_try.append(m)
+    # Preferred sequence of stable fallback models
+    fallback_sequence = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash-lite"]
+    
+    # Dynamically build our models_to_try based on what is actually available in the region/project
+    models_to_try = []
+    
+    if avail_models:
+        # 1. Put the requested model first if it is available
+        if model in avail_models:
+            models_to_try.append(model)
+        # 2. Add fallback models that are available
+        for m in fallback_sequence:
+            if m in avail_models and m not in models_to_try:
+                models_to_try.append(m)
+        # 3. Add any other available models just in case
+        for m in avail_models:
+            if m not in models_to_try:
+                models_to_try.append(m)
+    else:
+        # If the models list endpoint is not accessible (e.g. timeout), fall back to standard list
+        models_to_try = [model]
+        for m in fallback_sequence:
+            if m not in models_to_try:
+                models_to_try.append(m)
             
     last_error_msg = ""
     for idx, current_model in enumerate(models_to_try):
