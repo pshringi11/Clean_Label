@@ -99,6 +99,10 @@ if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 if "selected_ing" not in st.session_state:
     st.session_state.selected_ing = None
+if "manual_ingredients_text" not in st.session_state:
+    st.session_state.manual_ingredients_text = ""
+if "just_loaded_text" not in st.session_state:
+    st.session_state.just_loaded_text = False
 
 # Sidebar Control Center
 with st.sidebar:
@@ -678,6 +682,9 @@ with c1:
     
     tab_upload, tab_camera, tab_text = st.tabs(["📤 Upload Image", "📸 Camera Live", "✍️ Manual Text"])
     
+    if st.session_state.get("just_loaded_text", False):
+        st.info("💡 **Demo ingredients loaded!** Click on the **✍️ Manual Text** tab below to view/edit them, then click **🌱 Analyze Ingredients Instantly** to scan.")
+    
     ingredients_image = None
     ingredients_text = ""
     
@@ -696,7 +703,7 @@ with c1:
     with tab_text:
         ingredients_text = st.text_area(
             "Paste labels text",
-            value=st.session_state.get("prefill_text", ""),
+            key="manual_ingredients_text",
             placeholder="Example: Water, corn syrup, modified corn starch, red 40, Yellow 5, artificial flavor, sodium benzoate, citric acid..."
         )
         
@@ -754,6 +761,7 @@ with c1:
                             "role": "model",
                             "parts": [{"text": f"Successfully parsed '{result['productName']}'! Ask me anything regarding alternatives like production costs or gut health effects."}]
                         }]
+                        st.session_state.just_loaded_text = False
                         st.success("Analysis Complete!")
                         st.rerun()
                 except Exception as e:
@@ -776,6 +784,7 @@ with c1:
             if st.button("Inspect Demo ⚡", key=f"scan_demo_{clean_name}", type="secondary", use_container_width=True):
                 st.session_state.active_scan = info["analysis"]
                 st.session_state.selected_ing = info["analysis"]["ingredients"][0] if info["analysis"]["ingredients"] else None
+                st.session_state.just_loaded_text = False
                 st.session_state.chat_history = [{
                     "role": "model",
                     "parts": [{"text": f"Successfully loaded pre-analyzed biochemist metadata for '{info['analysis']['productName']}'! Explore ingredients in the audit dashboard & ask questions below."}]
@@ -783,7 +792,8 @@ with c1:
                 st.success(f"Demonstration Loaded for '{name}'!")
                 st.rerun()
             if st.button("Load & Copy ✍️", key=f"copy_demo_{clean_name}", type="secondary", use_container_width=True):
-                st.session_state.prefill_text = info["ingredients_text"]
+                st.session_state.manual_ingredients_text = info["ingredients_text"]
+                st.session_state.just_loaded_text = True
                 st.success(f"Copied ingredients list to 'Manual Text' input area above!")
                 st.rerun()
                 
