@@ -1246,35 +1246,31 @@ elif st.session_state.navigation_page == "🌱 Natural Alternatives":
             
             nested_c1, nested_c2 = st.columns([5, 7])
             with nested_c1:
-                st.markdown(f"""
-                <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 12px;">
-                    <div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                            <span style="font-size: 0.8rem; color: #72796e; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Synthetic Cost:</span>
-                            <span style="font-size: 0.95rem; font-weight: 700; color: #42493e;">{cost["syntheticProductionCostEstimate"]}</span>
-                        </div>
-                        <div style="height: 12px; width: 100%; background-color: #eeeee9; border-radius: 6px; overflow: hidden;">
-                            <div style="height: 100%; width: 25%; background-color: #72796e; border-radius: 6px;"></div>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                            <span style="font-size: 0.8rem; color: #154212; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;">Organic Sourced:</span>
-                            <span style="font-size: 0.95rem; font-weight: 700; color: #154212;">{cost["naturalProductionCostEstimate"]}</span>
-                        </div>
-                        <div style="height: 12px; width: 100%; background-color: #ccebc7; border-radius: 6px; overflow: hidden;">
-                            <div style="height: 100%; width: 75%; background-color: #154212; border-radius: 6px;"></div>
-                        </div>
-                    </div>
-                    
-                    <div style="background-color: #ccebc7; border: 1px solid #b0cfad; border-radius: 10px; padding: 10px 14px; text-align: center;">
-                        <span style="font-size: 0.85rem; color: #154212; font-weight: 700; display: inline-block;">
-                            📈 +{cost['retailPriceImpactPercent']}% Est. Retail Premium
-                        </span>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+                st.markdown(f"""<div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 12px;">
+<div>
+<div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+<span style="font-size: 0.8rem; color: #72796e; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Synthetic Cost:</span>
+<span style="font-size: 0.95rem; font-weight: 700; color: #42493e;">{cost["syntheticProductionCostEstimate"]}</span>
+</div>
+<div style="height: 12px; width: 100%; background-color: #eeeee9; border-radius: 6px; overflow: hidden;">
+<div style="height: 100%; width: 25%; background-color: #72796e; border-radius: 6px;"></div>
+</div>
+</div>
+<div>
+<div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+<span style="font-size: 0.8rem; color: #154212; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;">Organic Sourced:</span>
+<span style="font-size: 0.95rem; font-weight: 700; color: #154212;">{cost["naturalProductionCostEstimate"]}</span>
+</div>
+<div style="height: 12px; width: 100%; background-color: #ccebc7; border-radius: 6px; overflow: hidden;">
+<div style="height: 100%; width: 75%; background-color: #154212; border-radius: 6px;"></div>
+</div>
+</div>
+<div style="background-color: #ccebc7; border: 1px solid #b0cfad; border-radius: 10px; padding: 10px 14px; text-align: center;">
+<span style="font-size: 0.85rem; color: #154212; font-weight: 700; display: inline-block;">
+📈 +{cost['retailPriceImpactPercent']}% Est. Retail Premium
+</span>
+</div>
+</div>""", unsafe_allow_html=True)
             with nested_c2:
                 st.markdown("#### Economic Feasibility breakdown")
                 st.write(cost["costIncreaseExplanation"])
