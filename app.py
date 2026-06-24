@@ -264,9 +264,9 @@ with st.sidebar:
         
         model_choice = st.selectbox(
             "Select Model Tier 🧠",
-            options=["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.5-flash", "gemini-3.1-pro-preview"],
+            options=["gemini-2.5-flash", "gemini-2.5-pro", "gemini-1.5-flash", "gemini-1.5-pro"],
             index=0,
-            help="Select the preferred Gemini model tier for ingredients analysis and AI chat."
+            help="Select the preferred Gemini model tier. If a model encounters high demand or temporary errors, the app will automatically fall back to alternative models."
         )
         
         # Key Acquisition Steps & Security Disclaimer
@@ -296,85 +296,130 @@ with st.sidebar:
                     "parts": [{"text": f"Refreshed analysis for {hist['data']['productName']}. Ask me any question about the alternatives!"}]
                 }]
 
-# Helper function to call Gemini API directly via requests
+# Helper function to call Gemini API directly via requests with smart fallback logic
 def call_gemini_api(api_key: str, model: str, system_instruction: str, contents_parts: list, response_schema: dict = None) -> str:
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
-    headers = {
-        "Content-Type": "application/json"
-    }
+    # List of stable models to try in case of 503/429/404 errors
+    fallback_sequence = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-1.5-pro", "gemini-1.5-flash"]
     
-    payload = {
-        "contents": [
-            {
-                "parts": contents_parts
-            }
-        ],
-        "systemInstruction": {
-            "parts": [
+    # Ensure the requested model is tried first
+    models_to_try = [model]
+    for m in fallback_sequence:
+        if m not in models_to_try:
+            models_to_try.append(m)
+            
+    last_error_msg = ""
+    for idx, current_model in enumerate(models_to_try):
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{current_model}:generateContent?key={api_key}"
+        headers = {
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "contents": [
                 {
-                    "text": system_instruction
+                    "parts": contents_parts
                 }
-            ]
-        }
-    }
-    
-    if response_schema:
-        payload["generationConfig"] = {
-            "responseMimeType": "application/json",
-            "responseSchema": response_schema
+            ],
+            "systemInstruction": {
+                "parts": [
+                    {
+                        "text": system_instruction
+                    }
+                ]
+            }
         }
         
-    response = requests.post(url, headers=headers, json=payload)
-    if response.status_code != 200:
-        raise Exception(f"Gemini API Error (status {response.status_code}): {response.text}")
-        
-    res_json = response.json()
-    try:
-        candidate = res_json["candidates"][0]
-        text = candidate["content"]["parts"][0]["text"]
-        return text
-    except (KeyError, IndexError):
-        raise Exception(f"Invalid API response structure: {json.dumps(res_json)}")
+        if response_schema:
+            payload["generationConfig"] = {
+                "responseMimeType": "application/json",
+                "responseSchema": response_schema
+            }
+            
+        try:
+            response = requests.post(url, headers=headers, json=payload, timeout=60)
+            if response.status_code == 200:
+                res_json = response.json()
+                candidate = res_json["candidates"][0]
+                text = candidate["content"]["parts"][0]["text"]
+                
+                # If we successfully used a fallback model, notify the user beautifully
+                if current_model != model:
+                    st.toast(f"✅ Completed scan using fallback model: {current_model}", icon="🌱")
+                return text
+                
+            raise Exception(f"Status {response.status_code}: {response.text}")
+            
+        except Exception as e:
+            last_error_msg = str(e)
+            # If this is not the last model in the sequence, try fallback
+            if idx < len(models_to_try) - 1:
+                err_summary = "busy (503)" if "503" in last_error_msg else ("not found (404)" if "404" in last_error_msg else "temporary limit")
+                st.toast(f"⚠️ {current_model} is {err_summary}. Trying fallback model {models_to_try[idx+1]}...", icon="🔄")
+            else:
+                break
+                
+    raise Exception(f"Gemini API Error (all fallback options failed). Last error: {last_error_msg}")
 
 def call_gemini_chat(api_key: str, model: str, system_instruction: str, history: list, new_user_message: str) -> str:
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
-    headers = {
-        "Content-Type": "application/json"
-    }
+    # List of stable models to try in case of 503/429/404 errors
+    fallback_sequence = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-1.5-pro", "gemini-1.5-flash"]
     
-    contents = []
-    for turn in history:
+    # Ensure the requested model is tried first
+    models_to_try = [model]
+    for m in fallback_sequence:
+        if m not in models_to_try:
+            models_to_try.append(m)
+            
+    last_error_msg = ""
+    for idx, current_model in enumerate(models_to_try):
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{current_model}:generateContent?key={api_key}"
+        headers = {
+            "Content-Type": "application/json"
+        }
+        
+        contents = []
+        for turn in history:
+            contents.append({
+                "role": "user" if turn["role"] == "user" else "model",
+                "parts": [{"text": turn["parts"][0]["text"]}]
+            })
+            
         contents.append({
-            "role": "user" if turn["role"] == "user" else "model",
-            "parts": [{"text": turn["parts"][0]["text"]}]
+            "role": "user",
+            "parts": [{"text": new_user_message}]
         })
         
-    contents.append({
-        "role": "user",
-        "parts": [{"text": new_user_message}]
-    })
-    
-    payload = {
-        "contents": contents,
-        "systemInstruction": {
-            "parts": [
-                {
-                    "text": system_instruction
-                }
-            ]
+        payload = {
+            "contents": contents,
+            "systemInstruction": {
+                "parts": [
+                    {
+                        "text": system_instruction
+                    }
+                ]
+            }
         }
-    }
-    
-    response = requests.post(url, headers=headers, json=payload)
-    if response.status_code != 200:
-        raise Exception(f"Gemini Chat API Error (status {response.status_code}): {response.text}")
         
-    res_json = response.json()
-    try:
-        text = res_json["candidates"][0]["content"]["parts"][0]["text"]
-        return text
-    except (KeyError, IndexError):
-        raise Exception(f"Invalid API Chat response: {json.dumps(res_json)}")
+        try:
+            response = requests.post(url, headers=headers, json=payload, timeout=45)
+            if response.status_code == 200:
+                res_json = response.json()
+                text = res_json["candidates"][0]["content"]["parts"][0]["text"]
+                if current_model != model:
+                    st.toast(f"✅ Successfully chatted using fallback model: {current_model}", icon="💬")
+                return text
+                
+            raise Exception(f"Status {response.status_code}: {response.text}")
+            
+        except Exception as e:
+            last_error_msg = str(e)
+            if idx < len(models_to_try) - 1:
+                err_summary = "busy (503)" if "503" in last_error_msg else ("not found (404)" if "404" in last_error_msg else "temporary limit")
+                st.toast(f"⚠️ {current_model} is {err_summary}. Trying fallback model {models_to_try[idx+1]}...", icon="🔄")
+            else:
+                break
+                
+    raise Exception(f"Gemini Chat API Error (all fallback options failed). Last error: {last_error_msg}")
 
 # Analysis Schema styled for RAW json format
 raw_analysis_schema = {
