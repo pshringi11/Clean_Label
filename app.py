@@ -264,9 +264,9 @@ with st.sidebar:
         
         model_choice = st.selectbox(
             "Select Model Tier 🧠",
-            options=["gemini-2.5-flash", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.5-pro"],
+            options=["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.5-flash", "gemini-3.1-pro-preview"],
             index=0,
-            help="If you encounter HTTP 429 quota/rate limit errors on the Google AI Studio free tier, switch to 'gemini-1.5-flash' for a more robust quota structure."
+            help="Select the preferred Gemini model tier for ingredients analysis and AI chat."
         )
         
         # Key Acquisition Steps & Security Disclaimer
