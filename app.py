@@ -48,13 +48,13 @@ st.markdown("""
     }
     
     /* Natural Tones Card blocks */
-    .natural-card {
-        background-color: #FFFFFF;
-        border: 1px solid #E1E6D9;
-        border-radius: 24px;
-        padding: 1.8rem;
-        box-shadow: 0 4px 12px rgba(106, 113, 101, 0.04);
-        margin-bottom: 1.5rem;
+    .natural-card, div[data-testid="stVerticalBlockBorderWrapper"] {
+        background-color: #FFFFFF !important;
+        border: 1px solid #E1E6D9 !important;
+        border-radius: 24px !important;
+        padding: 1.8rem !important;
+        box-shadow: 0 4px 12px rgba(106, 113, 101, 0.04) !important;
+        margin-bottom: 1.5rem !important;
     }
     .natural-card-header {
         font-family: 'Space Grotesk', sans-serif;
@@ -681,193 +681,187 @@ SAMPLE_PRODUCTS = {
 c1, c2 = st.columns([4, 8])
 
 with c1:
-    st.markdown('<div class="natural-card">', unsafe_allow_html=True)
-    st.markdown('<div class="natural-card-header">🧪 Decode Food Label</div>', unsafe_allow_html=True)
-    
-    if "input_method" not in st.session_state:
-        st.session_state.input_method = "📤 Upload Image"
+    with st.container(border=True):
+        st.markdown('<div class="natural-card-header">🧪 Decode Food Label</div>', unsafe_allow_html=True)
+        
+        if "input_method" not in st.session_state:
+            st.session_state.input_method = "📤 Upload Image"
 
-    input_method = st.radio(
-        "Select Input Source",
-        options=["📤 Upload Image", "📸 Camera Live", "✍️ Manual Text"],
-        key="input_method",
-        horizontal=True
-    )
-    
-    if st.session_state.get("just_loaded_text", False):
-        st.info("💡 **Demo ingredients loaded below!** Click **🌱 Analyze Ingredients Instantly** to scan, or edit them in the text box below.")
-    
-    ingredients_image = None
-    ingredients_text = ""
-    
-    if input_method == "📤 Upload Image":
-        uploaded_file = st.file_uploader("Upload product ingredient label picture", type=["jpg", "jpeg", "png", "webp"])
-        if uploaded_file is not None:
-            ingredients_image = Image.open(uploaded_file)
-            st.image(ingredients_image, caption="Uploaded image", use_container_width=True)
-            
-    elif input_method == "📸 Camera Live":
-        camera_file = st.camera_input("Snapshot product food labels")
-        if camera_file is not None:
-            ingredients_image = Image.open(camera_file)
-            st.image(ingredients_image, caption="Captured Image", use_container_width=True)
-            
-    elif input_method == "✍️ Manual Text":
-        ingredients_text = st.text_area(
-            "Paste labels text",
-            key="manual_ingredients_text",
-            placeholder="Example: Water, corn syrup, modified corn starch, red 40, Yellow 5, artificial flavor, sodium benzoate, citric acid..."
+        input_method = st.radio(
+            "Select Input Source",
+            options=["📤 Upload Image", "📸 Camera Live", "✍️ Manual Text"],
+            key="input_method",
+            horizontal=True
         )
         
-    st.markdown("---")
-    
-    if st.button("🌱 Analyze Ingredients Instantly", type="primary", use_container_width=True):
-        if not api_key:
-            st.error("Please configure your GEMINI_API_KEY in the sidebar control center first!")
-        else:
-            with st.spinner("Executing biochemical food label analysis..."):
-                try:
-                    contents_parts = []
-                    if ingredients_image:
-                        buffered = io.BytesIO()
-                        ingredients_image.save(buffered, format="JPEG")
-                        img_bytes = buffered.getvalue()
-                        img_b54 = base64.b64encode(img_bytes).decode("utf-8")
-                        contents_parts.append({
-                            "inlineData": {
-                                "mimeType": "image/jpeg",
-                                "data": img_b54
-                            }
-                        })
-                        contents_parts.append({
-                            "text": "Recognize ingredients from this visual packaging scan, isolate lab-made synthetic fillers/synthetic additives, identify biological alternatives, estimate wholesale production cost metrics, extract allergens and certifications, and suggest 1-2 real-life popular cleaner brand alternatives with natural ingredients."
-                        })
-                    elif ingredients_text:
-                        contents_parts.append({
-                            "text": f"Isolate synthetic additives, identify biological alternatives, estimate production cost changes, extract allergens and certifications, and suggest 1-2 real-life popular cleaner brand alternatives with natural ingredients for the following ingredient string:\n\n{ingredients_text}"
-                        })
-                    else:
-                        st.warning("Please provide either an image scan or paste label string before triggering analysis.")
-                        
-                    if len(contents_parts) > 0:
-                        raw_json_str = call_gemini_api(
-                            api_key=api_key,
-                            model=model_choice,
-                            system_instruction="You are an elite food biochemist. Identify food additives, functional purposes, suggest premium natural substitutes, evaluate health risks, compute production cost factors, flag potential certifications, and suggest 1-2 real, cleaner natural-ingredient brand alternatives (like Olipop, Siete Foods, SmartSweets, YumEarth, Primal Kitchen, etc., matching the parsed product category).",
-                            contents_parts=contents_parts,
-                            response_schema=raw_analysis_schema
-                        )
-                        
-                        result = json.loads(raw_json_str)
-                        st.session_state.active_scan = result
-                        st.session_state.selected_ing = result["ingredients"][0] if result["ingredients"] else None
-                        
-                        # Save in session history
-                        st.session_state.history.append({
-                            "type": "image" if ingredients_image else "text",
-                            "data": result
-                        })
-                        
-                        # Initialize conversational chat
-                        st.session_state.chat_history = [{
-                            "role": "model",
-                            "parts": [{"text": f"Successfully parsed '{result['productName']}'! Ask me anything regarding alternatives like production costs or gut health effects."}]
-                        }]
-                        st.session_state.just_loaded_text = False
-                        st.success("Analysis Complete!")
-                        st.rerun()
-                except Exception as e:
-                    st.error(f"Failed parsing label: {str(e)}")
-                    
-    st.markdown('</div>', unsafe_allow_html=True)
+        if st.session_state.get("just_loaded_text", False):
+            st.info("💡 **Demo ingredients loaded below!** Click **🌱 Analyze Ingredients Instantly** to scan, or edit them in the text box below.")
+        
+        ingredients_image = None
+        ingredients_text = ""
+        
+        if input_method == "📤 Upload Image":
+            uploaded_file = st.file_uploader("Upload product ingredient label picture", type=["jpg", "jpeg", "png", "webp"])
+            if uploaded_file is not None:
+                ingredients_image = Image.open(uploaded_file)
+                st.image(ingredients_image, caption="Uploaded image", use_container_width=True)
+                
+        elif input_method == "📸 Camera Live":
+            camera_file = st.camera_input("Snapshot product food labels")
+            if camera_file is not None:
+                ingredients_image = Image.open(camera_file)
+                st.image(ingredients_image, caption="Captured Image", use_container_width=True)
+                
+        elif input_method == "✍️ Manual Text":
+            ingredients_text = st.text_area(
+                "Paste labels text",
+                key="manual_ingredients_text",
+                placeholder="Example: Water, corn syrup, modified corn starch, red 40, Yellow 5, artificial flavor, sodium benzoate, citric acid..."
+            )
+            
+        st.markdown("---")
+        
+        if st.button("🌱 Analyze Ingredients Instantly", type="primary", use_container_width=True):
+            if not api_key:
+                st.error("Please configure your GEMINI_API_KEY in the sidebar control center first!")
+            else:
+                with st.spinner("Executing biochemical food label analysis..."):
+                    try:
+                        contents_parts = []
+                        if ingredients_image:
+                            buffered = io.BytesIO()
+                            ingredients_image.save(buffered, format="JPEG")
+                            img_bytes = buffered.getvalue()
+                            img_b54 = base64.b64encode(img_bytes).decode("utf-8")
+                            contents_parts.append({
+                                "inlineData": {
+                                    "mimeType": "image/jpeg",
+                                    "data": img_b54
+                                }
+                            })
+                            contents_parts.append({
+                                "text": "Recognize ingredients from this visual packaging scan, isolate lab-made synthetic fillers/synthetic additives, identify biological alternatives, estimate wholesale production cost metrics, extract allergens and certifications, and suggest 1-2 real-life popular cleaner brand alternatives with natural ingredients."
+                            })
+                        elif ingredients_text:
+                            contents_parts.append({
+                                "text": f"Isolate synthetic additives, identify biological alternatives, estimate production cost changes, extract allergens and certifications, and suggest 1-2 real-life popular cleaner brand alternatives with natural ingredients for the following ingredient string:\n\n{ingredients_text}"
+                            })
+                        else:
+                            st.warning("Please provide either an image scan or paste label string before triggering analysis.")
+                            
+                        if len(contents_parts) > 0:
+                            raw_json_str = call_gemini_api(
+                                api_key=api_key,
+                                model=model_choice,
+                                system_instruction="You are an elite food biochemist. Identify food additives, functional purposes, suggest premium natural substitutes, evaluate health risks, compute production cost factors, flag potential certifications, and suggest 1-2 real, cleaner natural-ingredient brand alternatives (like Olipop, Siete Foods, SmartSweets, YumEarth, Primal Kitchen, etc., matching the parsed product category).",
+                                contents_parts=contents_parts,
+                                response_schema=raw_analysis_schema
+                            )
+                            
+                            result = json.loads(raw_json_str)
+                            st.session_state.active_scan = result
+                            st.session_state.selected_ing = result["ingredients"][0] if result["ingredients"] else None
+                            
+                            # Save in session history
+                            st.session_state.history.append({
+                                "type": "image" if ingredients_image else "text",
+                                "data": result
+                            })
+                            
+                            # Initialize conversational chat
+                            st.session_state.chat_history = [{
+                                "role": "model",
+                                "parts": [{"text": f"Successfully parsed '{result['productName']}'! Ask me anything regarding alternatives like production costs or gut health effects."}]
+                            }]
+                            st.session_state.just_loaded_text = False
+                            st.success("Analysis Complete!")
+                            st.rerun()
+                    except Exception as e:
+                        st.error(f"Failed parsing label: {str(e)}")
 
     # Added Sample Label Quick Loader block
-    st.markdown('<div class="natural-card">', unsafe_allow_html=True)
-    st.markdown('<div class="natural-card-header">💡 No products nearby? Scan an online sample label:</div>', unsafe_allow_html=True)
-    st.write("Instant-explore pre-calculated biochemist scans of common grocery items:")
-    
-    # Callback to load ingredients to session state safely before rendering text area
-    def load_demo_ingredients(text_to_load):
-        st.session_state.manual_ingredients_text = text_to_load
-        st.session_state.input_method = "✍️ Manual Text"
-        st.session_state.just_loaded_text = True
-
-    for name, info in SAMPLE_PRODUCTS.items():
-        st.markdown(f"**{name}**")
-        st.caption(f"📝 *Ingredients:* {info['ingredients_text']}")
+    with st.container(border=True):
+        st.markdown('<div class="natural-card-header">💡 No products nearby? Scan an online sample label:</div>', unsafe_allow_html=True)
+        st.write("Instant-explore pre-calculated biochemist scans of common grocery items:")
         
-        # 50/50 Column split for primary demo trigger and copy action
-        btn_col1, btn_col2 = st.columns(2)
-        clean_name = name.lower().replace(" ", "_")
-        with btn_col1:
-            if st.button("Inspect Demo ⚡", key=f"scan_demo_{clean_name}", type="secondary", use_container_width=True):
-                st.session_state.active_scan = info["analysis"]
-                st.session_state.selected_ing = info["analysis"]["ingredients"][0] if info["analysis"]["ingredients"] else None
-                st.session_state.just_loaded_text = False
-                st.session_state.chat_history = [{
-                    "role": "model",
-                    "parts": [{"text": f"Successfully loaded pre-analyzed biochemist metadata for '{info['analysis']['productName']}'! Explore ingredients in the audit dashboard & ask questions below."}]
-                }]
-                st.success(f"Demonstration Loaded for '{name}'!")
-                st.rerun()
-        with btn_col2:
-            st.button(
-                "Load & Copy ✍️", 
-                key=f"copy_demo_{clean_name}", 
-                type="secondary", 
-                use_container_width=True,
-                on_click=load_demo_ingredients,
-                args=(info["ingredients_text"],)
-            )
-        st.markdown('<div style="margin-bottom: 12px; border-bottom: 1px solid #ECEFE8; padding-bottom: 12px;"></div>', unsafe_allow_html=True)
-                
-    st.markdown('</div>', unsafe_allow_html=True)
+        # Callback to load ingredients to session state safely before rendering text area
+        def load_demo_ingredients(text_to_load):
+            st.session_state.manual_ingredients_text = text_to_load
+            st.session_state.input_method = "✍️ Manual Text"
+            st.session_state.just_loaded_text = True
+
+        for name, info in SAMPLE_PRODUCTS.items():
+            st.markdown(f"**{name}**")
+            st.caption(f"📝 *Ingredients:* {info['ingredients_text']}")
+            
+            # 50/50 Column split for primary demo trigger and copy action
+            btn_col1, btn_col2 = st.columns(2)
+            clean_name = name.lower().replace(" ", "_")
+            with btn_col1:
+                if st.button("Inspect Demo ⚡", key=f"scan_demo_{clean_name}", type="secondary", use_container_width=True):
+                    st.session_state.active_scan = info["analysis"]
+                    st.session_state.selected_ing = info["analysis"]["ingredients"][0] if info["analysis"]["ingredients"] else None
+                    st.session_state.just_loaded_text = False
+                    st.session_state.chat_history = [{
+                        "role": "model",
+                        "parts": [{"text": f"Successfully loaded pre-analyzed biochemist metadata for '{info['analysis']['productName']}'! Explore ingredients in the audit dashboard & ask questions below."}]
+                    }]
+                    st.success(f"Demonstration Loaded for '{name}'!")
+                    st.rerun()
+            with btn_col2:
+                st.button(
+                    "Load & Copy ✍️", 
+                    key=f"copy_demo_{clean_name}", 
+                    type="secondary", 
+                    use_container_width=True,
+                    on_click=load_demo_ingredients,
+                    args=(info["ingredients_text"],)
+                )
+            st.markdown('<div style="margin-bottom: 12px; border-bottom: 1px solid #ECEFE8; padding-bottom: 12px;"></div>', unsafe_allow_html=True)
     
     # Embedded Chat Widget if a scan exists
     if st.session_state.active_scan:
-        st.markdown('<div class="natural-card">', unsafe_allow_html=True)
-        st.markdown('<div class="natural-card-header">💬 Ask Clean Label Guide</div>', unsafe_allow_html=True)
-        
-        # Display chat conversation
-        chat_container = st.container(height=300)
-        with chat_container:
-            for message in st.session_state.chat_history:
-                role = "assistant" if message["role"] == "model" else "user"
-                with st.chat_message(role):
-                    st.write(message["parts"][0]["text"])
-                    
-        # Chat input element
-        user_query = st.chat_input("Ask a question about food safety alternatives...")
-        if user_query:
-            # Append user message
-            st.session_state.chat_history.append({"role": "user", "parts": [{"text": user_query}]})
+        with st.container(border=True):
+            st.markdown('<div class="natural-card-header">💬 Ask Clean Label Guide</div>', unsafe_allow_html=True)
             
-            if not api_key:
-                st.error("Please configure API key first.")
-            else:
-                try:
-                    with st.spinner("Connecting to biochemistry researcher database..."):
-                        # Prepare context
-                        sys_instruction = f"""You are 'Clean Label Guide', an expert biochemist discussing '{st.session_state.active_scan['productName']}' packaged food.
-                        Here is the analyzed food context to build accurate details from:
-                        {json.dumps(st.session_state.active_scan)}
+            # Display chat conversation
+            chat_container = st.container(height=300)
+            with chat_container:
+                for message in st.session_state.chat_history:
+                    role = "assistant" if message["role"] == "model" else "user"
+                    with st.chat_message(role):
+                        st.write(message["parts"][0]["text"])
                         
-                        Answer questions simply and beautifully, providing science-backed research without confusing jargon."""
-                        
-                        assistant_reply = call_gemini_chat(
-                            api_key=api_key,
-                            model=model_choice,
-                            system_instruction=sys_instruction,
-                            history=st.session_state.chat_history[:-1],
-                            new_user_message=user_query
-                        )
-                        
-                        st.session_state.chat_history.append({"role": "model", "parts": [{"text": assistant_reply}]})
-                        st.rerun()
-                except Exception as e:
-                    st.error(f"Chat error: {str(e)}")
-                    
-        st.markdown('</div>', unsafe_allow_html=True)
+            # Chat input element
+            user_query = st.chat_input("Ask a question about food safety alternatives...")
+            if user_query:
+                # Append user message
+                st.session_state.chat_history.append({"role": "user", "parts": [{"text": user_query}]})
+                
+                if not api_key:
+                    st.error("Please configure API key first.")
+                else:
+                    try:
+                        with st.spinner("Connecting to biochemistry researcher database..."):
+                            # Prepare context
+                            sys_instruction = f"""You are 'Clean Label Guide', an expert biochemist discussing '{st.session_state.active_scan['productName']}' packaged food.
+                            Here is the analyzed food context to build accurate details from:
+                            {json.dumps(st.session_state.active_scan)}
+                            
+                            Answer questions simply and beautifully, providing science-backed research without confusing jargon."""
+                            
+                            assistant_reply = call_gemini_chat(
+                                api_key=api_key,
+                                model=model_choice,
+                                system_instruction=sys_instruction,
+                                history=st.session_state.chat_history[:-1],
+                                new_user_message=user_query
+                            )
+                            
+                            st.session_state.chat_history.append({"role": "model", "parts": [{"text": assistant_reply}]})
+                            st.rerun()
+                    except Exception as e:
+                        st.error(f"Chat error: {str(e)}")
 
 with c2:
     if st.session_state.active_scan:
@@ -895,136 +889,126 @@ with c2:
         sub_c1, sub_c2 = st.columns([5, 7])
         
         with sub_c1:
-            st.markdown('<div class="natural-card">', unsafe_allow_html=True)
-            st.markdown('<div class="natural-card-header">🍔 Ingredient Audit</div>', unsafe_allow_html=True)
-            st.write("Click an item below to inspect alternative pathways:")
-            
-            for ing in scan["ingredients"]:
-                # Label styling depending on synthetic vs natural
-                ing_label = f"🧪 {ing['name']}" if ing["isSynthetic"] else f"🌱 {ing['name']}"
-                if st.button(ing_label, key=f"ing_btn_{ing['name']}", use_container_width=True):
-                    st.session_state.selected_ing = ing
-                    
-            st.markdown('</div>', unsafe_allow_html=True)
+            with st.container(border=True):
+                st.markdown('<div class="natural-card-header">🍔 Ingredient Audit</div>', unsafe_allow_html=True)
+                st.write("Click an item below to inspect alternative pathways:")
+                
+                for ing in scan["ingredients"]:
+                    # Label styling depending on synthetic vs natural
+                    ing_label = f"🧪 {ing['name']}" if ing["isSynthetic"] else f"🌱 {ing['name']}"
+                    if st.button(ing_label, key=f"ing_btn_{ing['name']}", use_container_width=True):
+                        st.session_state.selected_ing = ing
             
         with sub_c2:
-            st.markdown('<div class="natural-card">', unsafe_allow_html=True)
-            st.markdown('<div class="natural-card-header">🔬 Alternative Inspector</div>', unsafe_allow_html=True)
-            
-            sel = st.session_state.selected_ing
-            if sel:
-                st.markdown(f"### {sel['name']}")
-                is_syn_label = "Synthetic Additive 🧪" if sel["isSynthetic"] else "Natural Whole Ingredient 🌱"
-                st.info(f"**Classification:** {is_syn_label} | **Health Risk level:** {sel['healthImpactLevel']}")
+            with st.container(border=True):
+                st.markdown('<div class="natural-card-header">🔬 Alternative Inspector</div>', unsafe_allow_html=True)
                 
-                st.markdown(f"💡 **Functional Necessity:** {sel['functionalNecessity']}")
-                
-                st.markdown("---")
-                st.markdown("🚨 **Toxicological & Lifestyle Impact details:**")
-                st.write(sel["healthImpactDetails"])
-                
-                st.markdown("---")
-                st.markdown("🌱 **Clean Alternatives suggested:**")
-                st.caption("Click any alternative below to expand details and sourcing information:")
-                if len(sel["naturalAlternatives"]) > 0:
-                    for alt in sel["naturalAlternatives"]:
-                        if isinstance(alt, dict):
-                            alt_name = alt.get("name", "Unknown Alternative")
-                            alt_info = alt.get("explanation", "Information not available.")
-                            alt_source = alt.get("sourcing", "Available at natural food stores or online specialty retailers.")
-                        else:
-                            alt_name = str(alt)
-                            alt_details = ALTERNATIVE_DETAILS.get(alt_name, {})
-                            alt_info = alt_details.get("explanation", "A natural source or food derivative that can functionally replace this synthetic compound.")
-                            alt_source = alt_details.get("sourcing", "Sourced from whole plant products, certified organic suppliers, or natural food channels.")
-                        
-                        with st.expander(f"✔️ {alt_name}"):
-                            st.markdown(f"📝 **About this ingredient:**\n{alt_info}")
-                            st.markdown(f"🌍 **Where to source it:**\n{alt_source}")
+                sel = st.session_state.selected_ing
+                if sel:
+                    st.markdown(f"### {sel['name']}")
+                    is_syn_label = "Synthetic Additive 🧪" if sel["isSynthetic"] else "Natural Whole Ingredient 🌱"
+                    st.info(f"**Classification:** {is_syn_label} | **Health Risk level:** {sel['healthImpactLevel']}")
+                    
+                    st.markdown(f"💡 **Functional Necessity:** {sel['functionalNecessity']}")
+                    
+                    st.markdown("---")
+                    st.markdown("🚨 **Toxicological & Lifestyle Impact details:**")
+                    st.write(sel["healthImpactDetails"])
+                    
+                    st.markdown("---")
+                    st.markdown("🌱 **Clean Alternatives suggested:**")
+                    st.caption("Click any alternative below to expand details and sourcing information:")
+                    if len(sel["naturalAlternatives"]) > 0:
+                        for alt in sel["naturalAlternatives"]:
+                            if isinstance(alt, dict):
+                                alt_name = alt.get("name", "Unknown Alternative")
+                                alt_info = alt.get("explanation", "Information not available.")
+                                alt_source = alt.get("sourcing", "Available at natural food stores or online specialty retailers.")
+                            else:
+                                alt_name = str(alt)
+                                alt_details = ALTERNATIVE_DETAILS.get(alt_name, {})
+                                alt_info = alt_details.get("explanation", "A natural source or food derivative that can functionally replace this synthetic compound.")
+                                alt_source = alt_details.get("sourcing", "Sourced from whole plant products, certified organic suppliers, or natural food channels.")
+                            
+                            with st.expander(f"✔️ {alt_name}"):
+                                st.markdown(f"📝 **About this ingredient:**\n{alt_info}")
+                                st.markdown(f"🌍 **Where to source it:**\n{alt_source}")
+                    else:
+                        st.write("*No direct single natural replacement can functionally match. Synthetic necessary for shelf retention.*")
                 else:
-                    st.write("*No direct single natural replacement can functionally match. Synthetic necessary for shelf retention.*")
-            else:
-                st.write("Please select an ingredient from the audit table to review alternative pathways.")
-                
-            st.markdown('</div>', unsafe_allow_html=True)
+                    st.write("Please select an ingredient from the audit table to review alternative pathways.")
             
         # Cleaner Brand Alternatives Section
         if "cleanerProductSuggestions" in scan and scan["cleanerProductSuggestions"]:
-            st.markdown('<div class="natural-card">', unsafe_allow_html=True)
-            st.markdown('<div class="natural-card-header">🌱 Recommended Cleaner Brand Alternatives</div>', unsafe_allow_html=True)
-            st.write("These organic/natural market alternatives replace synthetic chemicals with whole food ingredients:")
-            
-            for idx, sug in enumerate(scan["cleanerProductSuggestions"]):
-                st.markdown(f"""
-                <div style="background-color: #F8F9F4; border: 1px solid #E1E6D9; border-radius: 12px; padding: 15px; margin-bottom: 12px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-weight: 700; color: #2C332A; font-size: 1.05rem;">🛒 {sug['name']}</span>
-                        <span class="natural-badge-green" style="margin: 0;">{sug['brand']}</span>
+            with st.container(border=True):
+                st.markdown('<div class="natural-card-header">🌱 Recommended Cleaner Brand Alternatives</div>', unsafe_allow_html=True)
+                st.write("These organic/natural market alternatives replace synthetic chemicals with whole food ingredients:")
+                
+                for idx, sug in enumerate(scan["cleanerProductSuggestions"]):
+                    st.markdown(f"""
+                    <div style="background-color: #F8F9F4; border: 1px solid #E1E6D9; border-radius: 12px; padding: 15px; margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 700; color: #2C332A; font-size: 1.05rem;">🛒 {sug['name']}</span>
+                            <span class="natural-badge-green" style="margin: 0;">{sug['brand']}</span>
+                        </div>
+                        <p style="margin: 8px 0; color: #4A5043; font-size: 0.9rem;">✨ <b>Key Benefits:</b> {sug['keyBenefits']}</p>
+                        <div style="font-size: 0.8rem; background-color: #FFFFFF; padding: 8px; border-radius: 6px; border: 1px solid #ECEFE8; color: #6A7165; font-family: monospace;">
+                            🌾 <b>Ingredients:</b> {sug['ingredientsList']}
+                        </div>
                     </div>
-                    <p style="margin: 8px 0; color: #4A5043; font-size: 0.9rem;">✨ <b>Key Benefits:</b> {sug['keyBenefits']}</p>
-                    <div style="font-size: 0.8rem; background-color: #FFFFFF; padding: 8px; border-radius: 6px; border: 1px solid #ECEFE8; color: #6A7165; font-family: monospace;">
-                        🌾 <b>Ingredients:</b> {sug['ingredientsList']}
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
+                    """, unsafe_allow_html=True)
             
         # Cost Analysis Segment
         cost = scan["productionCostEstimation"]
-        st.markdown('<div class="natural-card">', unsafe_allow_html=True)
-        st.markdown('<div class="natural-card-header">📊 Premium Cost of Production Estimator</div>', unsafe_allow_html=True)
-        
-        nested_c1, nested_c2 = st.columns([5, 7])
-        with nested_c1:
-            st.markdown(f"""
-            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px;">
-                <div style="background-color: #FAFBF9; border: 1px solid #E1E6D9; border-radius: 12px; padding: 12px 16px;">
-                    <span style="font-size: 0.8rem; color: #6A7165; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Synthetic wholesale prod. cost:</span>
-                    <div style="font-size: 1.5rem; font-weight: 700; color: #2C332A; margin-top: 2px;">{cost["syntheticProductionCostEstimate"]}</div>
-                </div>
-                <div style="background-color: #F1F4ED; border: 1px solid #D8DEC7; border-radius: 12px; padding: 12px 16px;">
-                    <span style="font-size: 0.8rem; color: #4B6344; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Natural sourced prod. cost:</span>
-                    <div style="font-size: 1.5rem; font-weight: 700; color: #4B6344; margin-top: 2px;">{cost["naturalProductionCostEstimate"]}</div>
-                    <span style="font-size: 0.75rem; color: #4B6344; background-color: #E2EADF; padding: 2px 8px; border-radius: 10px; font-weight: 700; margin-top: 4px; display: inline-block;">
-                        📈 +{cost['retailPriceImpactPercent']}% est. retail premium
-                    </span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        with nested_c2:
-            st.markdown("#### Economic Feasibility breakdown")
-            st.write(cost["costIncreaseExplanation"])
+        with st.container(border=True):
+            st.markdown('<div class="natural-card-header">📊 Premium Cost of Production Estimator</div>', unsafe_allow_html=True)
             
-        st.markdown('</div>', unsafe_allow_html=True)
+            nested_c1, nested_c2 = st.columns([5, 7])
+            with nested_c1:
+                st.markdown(f"""
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px;">
+                    <div style="background-color: #FAFBF9; border: 1px solid #E1E6D9; border-radius: 12px; padding: 12px 16px;">
+                        <span style="font-size: 0.8rem; color: #6A7165; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Synthetic wholesale prod. cost:</span>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #2C332A; margin-top: 2px;">{cost["syntheticProductionCostEstimate"]}</div>
+                    </div>
+                    <div style="background-color: #F1F4ED; border: 1px solid #D8DEC7; border-radius: 12px; padding: 12px 16px;">
+                        <span style="font-size: 0.8rem; color: #4B6344; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Natural sourced prod. cost:</span>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #4B6344; margin-top: 2px;">{cost["naturalProductionCostEstimate"]}</div>
+                        <span style="font-size: 0.75rem; color: #4B6344; background-color: #E2EADF; padding: 2px 8px; border-radius: 10px; font-weight: 700; margin-top: 4px; display: inline-block;">
+                            📈 +{cost['retailPriceImpactPercent']}% est. retail premium
+                        </span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            with nested_c2:
+                st.markdown("#### Economic Feasibility breakdown")
+                st.write(cost["costIncreaseExplanation"])
         
         # Certifications Badge integrity
-        st.markdown('<div class="natural-card">', unsafe_allow_html=True)
-        st.markdown('<div class="natural-card-header">🛡️ Dietary Compliance verification</div>', unsafe_allow_html=True)
-        
-        if len(scan["certifications"]) > 0:
-            cols = st.columns(min(3, len(scan["certifications"])))
-            for idx, cert in enumerate(scan["certifications"]):
-                col_idx = idx % 3
-                with cols[col_idx]:
-                    sticker = "✅" if cert["certified"] else "❌"
-                    st.markdown(f"**{cert['name']}** {sticker}")
-                    st.caption(cert["explanation"])
-        else:
-            st.info("No dietary certifications analyzed for this label.")
-                
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown('<div class="natural-card-header">🛡️ Dietary Compliance verification</div>', unsafe_allow_html=True)
+            
+            if len(scan["certifications"]) > 0:
+                cols = st.columns(min(3, len(scan["certifications"])))
+                for idx, cert in enumerate(scan["certifications"]):
+                    col_idx = idx % 3
+                    with cols[col_idx]:
+                        sticker = "✅" if cert["certified"] else "❌"
+                        st.markdown(f"**{cert['name']}** {sticker}")
+                        st.caption(cert["explanation"])
+            else:
+                st.info("No dietary certifications analyzed for this label.")
         
     else:
         # Initial greeting and demo
-        st.markdown('<div class="natural-card">', unsafe_allow_html=True)
-        st.markdown('<div class="natural-card-header">🌾 Getting Started with PureSource AI</div>', unsafe_allow_html=True)
-        st.markdown("""
-        To test the application, enter your Gemini API key in the sidebar, then use any of the options below:
-        - Paste a string of ingredients in the manual trace box on the left, then click 'Analyze'.
-        - Upload an image of food wrap labels to read components.
-        - Click any saved scan histories on the sidebar layout to study previously decoded items!
-        """)
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown('<div class="natural-card-header">🌾 Getting Started with PureSource AI</div>', unsafe_allow_html=True)
+            st.markdown("""
+            To test the application, enter your Gemini API key in the sidebar, then use any of the options below:
+            - Paste a string of ingredients in the manual trace box on the left, then click 'Analyze'.
+            - Upload an image of food wrap labels to read components.
+            - Click any saved scan histories on the sidebar layout to study previously decoded items!
+            """)
 
 # Elegant Footer conforming to Natural Tones standard
 st.markdown("""
