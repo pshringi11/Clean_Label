@@ -1,4 +1,5 @@
-🥗 CleanLabel AI
+# 🥗CleanLabel AI
+
 CleanLabel AI is an AI-powered food transparency assistant that helps consumers look beyond the barcode. By leveraging the multimodal power of Google Gemini 1.5 Flash via the new Google GenAI SDK, the app reads actual text from packaged food ingredient lists to identify synthetic additives, suggest natural plant-based alternatives, calculate economic production shifts, and offer a conversational deep-dive companion.
 
 Unlike traditional apps that rely on static barcode databases, CleanLabel AI uses an AI-first approach, allowing it to analyze any packaged food item—from global brands to local bakery goods—purely from a photograph.
