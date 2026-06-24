@@ -68,7 +68,7 @@ Because Streamlit natively supports camera streaming components, you can test th
 
 Ensure your computer and phone are connected to the same Wi-Fi network.
 
-Look at your terminal output after running streamlit run app.py to find your Network URL (e.g., http://192.168.1.XX:8501).
+Look at your terminal output after running streamlit run app.py to find your Network URL ([https://cleanlabel.streamlit.app/]([url](https://cleanlabel.streamlit.app/)).
 
 Type that URL into your mobile browser. Tap Camera Scan to launch your phone's native camera inside the browser and start scanning labels in your pantry!
 
