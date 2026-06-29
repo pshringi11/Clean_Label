@@ -306,8 +306,12 @@ with st.sidebar:
     """, unsafe_allow_html=True)
     
     st.markdown("### 🧭 Navigation Menu")
-    page_options = ["🌾 Ingredient Scanner", "📊 Analysis Reports", "🌱 Natural Alternatives", "💬 AI Assistant"]
+    page_options = ["🌾 Ingredient Scanner", "📊 Analysis Reports", "💬 AI Assistant"]
     
+    # Handle old navigation state gracefully if lingering
+    if st.session_state.navigation_page not in page_options:
+        st.session_state.navigation_page = "🌾 Ingredient Scanner"
+        
     # We select page based on radio button
     selected_page = st.radio(
         "Go to page:",
@@ -1163,16 +1167,12 @@ if st.session_state.navigation_page == "🌾 Ingredient Scanner":
                 st.write("Your packaging ingredients have been successfully parsed! Switch pages using the options below or the sidebar to explore reports:")
                 
                 # Dynamic action buttons
-                col_b1, col_b2, col_b3 = st.columns(3)
+                col_b1, col_b2 = st.columns(2)
                 with col_b1:
-                    if st.button("📊 View Ingredient Audit", use_container_width=True, type="primary"):
+                    if st.button("📊 View Analysis Report", use_container_width=True, type="primary"):
                         st.session_state.navigation_page = "📊 Analysis Reports"
                         st.rerun()
                 with col_b2:
-                    if st.button("🌱 View Natural Alternatives", use_container_width=True, type="primary"):
-                        st.session_state.navigation_page = "🌱 Natural Alternatives"
-                        st.rerun()
-                with col_b3:
                     if st.button("💬 Chat with AI Guide", use_container_width=True, type="primary"):
                         st.session_state.navigation_page = "💬 AI Assistant"
                         st.rerun()
@@ -1303,9 +1303,9 @@ elif st.session_state.navigation_page == "📊 Analysis Reports":
                 st.markdown('<div class="natural-card-header"><span class="material-symbols-outlined">pageview</span> Ingredient Audit</div>', unsafe_allow_html=True)
                 st.write("Click any ingredient below to inspect health risk levels and natural alternative replacements:")
                 
-                for ing in scan["ingredients"]:
+                for idx, ing in enumerate(scan["ingredients"]):
                     ing_label = f"🧪 {ing['name']}" if ing["isSynthetic"] else f"🌱 {ing['name']}"
-                    if st.button(ing_label, key=f"ing_report_btn_{ing['name']}", use_container_width=True):
+                    if st.button(ing_label, key=f"ing_report_btn_{ing['name']}_{idx}", use_container_width=True):
                         st.session_state.selected_ing = ing
             
         with sub_c2:
@@ -1362,49 +1362,58 @@ elif st.session_state.navigation_page == "📊 Analysis Reports":
                         st.write("*No direct single natural replacement can functionally match. Synthetic necessary for shelf retention.*")
                 else:
                     st.info("Please select an ingredient from the audit list on the left to review alternative pathways.")
-    else:
-        st.markdown("""
-        <div style="background-color: #ffffff; border: 1px solid #e5e1da; border-radius: 16px; padding: 40px; text-align: center; max-width: 600px; margin: 40px auto; box-shadow: 0 4px 12px rgba(45,90,39,0.02);">
-            <span class="material-symbols-outlined" style="font-size: 48px; color: #154212; margin-bottom: 16px;">analytics</span>
-            <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; font-weight: 700; color: #154212; margin: 0 0 8px 0;">No Analysis Report Loaded</h3>
-            <p style="color: #72796e; font-size: 14px; line-height: 1.6; margin-bottom: 24px;">You need to scan a food label on the main page to populate and explore deep biochemical analyses.</p>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("Go to Ingredient Scanner 🌾", type="primary", use_container_width=True):
-            st.session_state.navigation_page = "🌾 Ingredient Scanner"
-            st.rerun()
-
-elif st.session_state.navigation_page == "🌱 Natural Alternatives":
-    if st.session_state.active_scan:
-        scan = st.session_state.active_scan
+                    
+        # Divider
+        st.markdown("---")
         
-        st.markdown("## Natural Alternatives Explorer")
-        st.write("Swap synthetic additives for clean, botanical replacements based on your scanned ingredients.")
-        
-        # Cleaner Brand Alternatives Section
-        if "cleanerProductSuggestions" in scan and scan["cleanerProductSuggestions"]:
-            with st.container(border=True):
-                st.markdown('<div class="natural-card-header"><span class="material-symbols-outlined">eco</span> Recommended Cleaner Brand Alternatives</div>', unsafe_allow_html=True)
-                st.write("These organic/natural market alternatives replace synthetic chemicals with whole food ingredients:")
-                
-                for idx, sug in enumerate(scan["cleanerProductSuggestions"]):
-                    st.markdown(f"""
-                    <div style="background-color: #ffffff; border: 1px solid #e5e1da; border-radius: 16px; padding: 18px; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(45,90,39,0.02);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <span style="font-weight: 700; color: #154212; font-size: 1.1rem; font-family: 'Plus Jakarta Sans', sans-serif;">🛒 {sug['name']}</span>
-                            <span style="background-color: #ccebc7; color: #154212; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 99px; border: 1px solid #b0cfad;">{sug['brand']}</span>
-                        </div>
-                        <p style="margin: 8px 0; color: #42493e; font-size: 0.95rem;">✨ <b>Key Benefits:</b> {sug['keyBenefits']}</p>
-                        <div style="font-size: 0.85rem; background-color: #fafaf4; padding: 10px; border-radius: 8px; border: 1px solid #e5e1da; color: #42493e; font-family: monospace;">
-                            🌾 <b>Ingredients:</b> {sug['ingredientsList']}
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-            
         # Cost Analysis Segment
         cost = scan["productionCostEstimation"]
         with st.container(border=True):
             st.markdown('<div class="natural-card-header"><span class="material-symbols-outlined">payments</span> Premium Cost of Production Estimator</div>', unsafe_allow_html=True)
+            
+            # Dynamically calculate progress bar widths based on cost values if possible
+            syn_str = str(cost.get("syntheticProductionCostEstimate", "Low"))
+            nat_str = str(cost.get("naturalProductionCostEstimate", "High"))
+            
+            # Default fallback percentages
+            synthetic_width = 25
+            natural_width = 75
+            
+            # Simple extraction of numeric values to scale the bars
+            import re
+            syn_nums = re.findall(r"\d+\.?\d*", syn_str)
+            nat_nums = re.findall(r"\d+\.?\d*", nat_str)
+            
+            if syn_nums and nat_nums:
+                try:
+                    syn_val = float(syn_nums[0])
+                    nat_val = float(nat_nums[0])
+                    total = syn_val + nat_val
+                    if total > 0:
+                        synthetic_width = int((syn_val / total) * 100)
+                        natural_width = int((nat_val / total) * 100)
+                        # Clamping values for beautiful visual proportions
+                        synthetic_width = max(15, min(synthetic_width, 85))
+                        natural_width = max(15, min(natural_width, 85))
+                except ValueError:
+                    pass
+            else:
+                # Qualitative mapping
+                syn_lower = syn_str.lower()
+                nat_lower = nat_str.lower()
+                if "low" in syn_lower:
+                    synthetic_width = 20
+                elif "medium" in syn_lower:
+                    synthetic_width = 50
+                elif "high" in syn_lower:
+                    synthetic_width = 80
+                    
+                if "low" in nat_lower:
+                    natural_width = 20
+                elif "medium" in nat_lower:
+                    natural_width = 50
+                elif "high" in nat_lower:
+                    natural_width = 85
             
             nested_c1, nested_c2 = st.columns([5, 7])
             with nested_c1:
@@ -1412,19 +1421,23 @@ elif st.session_state.navigation_page == "🌱 Natural Alternatives":
 <div>
 <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
 <span style="font-size: 0.8rem; color: #72796e; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Synthetic Cost:</span>
-<span style="font-size: 0.95rem; font-weight: 700; color: #42493e;">{cost["syntheticProductionCostEstimate"]}</span>
 </div>
-<div style="height: 12px; width: 100%; background-color: #eeeee9; border-radius: 6px; overflow: hidden;">
-<div style="height: 100%; width: 25%; background-color: #72796e; border-radius: 6px;"></div>
+<div style="position: relative; height: 26px; width: 100%; background-color: #eeeee9; border-radius: 6px; overflow: hidden; display: flex; align-items: center;">
+<div style="position: absolute; left: 0; top: 0; bottom: 0; width: {synthetic_width}%; background-color: #72796e;"></div>
+<div style="position: relative; width: 100%; text-align: center; font-size: 0.85rem; font-weight: 700; color: #ffffff; text-shadow: 0px 1px 3px rgba(0,0,0,0.85); z-index: 2; padding: 0 8px;">
+{syn_str}
+</div>
 </div>
 </div>
 <div>
 <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
 <span style="font-size: 0.8rem; color: #154212; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;">Organic Sourced:</span>
-<span style="font-size: 0.95rem; font-weight: 700; color: #154212;">{cost["naturalProductionCostEstimate"]}</span>
 </div>
-<div style="height: 12px; width: 100%; background-color: #ccebc7; border-radius: 6px; overflow: hidden;">
-<div style="height: 100%; width: 75%; background-color: #154212; border-radius: 6px;"></div>
+<div style="position: relative; height: 26px; width: 100%; background-color: #ccebc7; border-radius: 6px; overflow: hidden; display: flex; align-items: center;">
+<div style="position: absolute; left: 0; top: 0; bottom: 0; width: {natural_width}%; background-color: #154212;"></div>
+<div style="position: relative; width: 100%; text-align: center; font-size: 0.85rem; font-weight: 700; color: #ffffff; text-shadow: 0px 1px 3px rgba(0,0,0,0.85); z-index: 2; padding: 0 8px;">
+{nat_str}
+</div>
 </div>
 </div>
 <div style="background-color: #ccebc7; border: 1px solid #b0cfad; border-radius: 10px; padding: 10px 14px; text-align: center;">
@@ -1454,9 +1467,9 @@ elif st.session_state.navigation_page == "🌱 Natural Alternatives":
     else:
         st.markdown("""
         <div style="background-color: #ffffff; border: 1px solid #e5e1da; border-radius: 16px; padding: 40px; text-align: center; max-width: 600px; margin: 40px auto; box-shadow: 0 4px 12px rgba(45,90,39,0.02);">
-            <span class="material-symbols-outlined" style="font-size: 48px; color: #154212; margin-bottom: 16px;">eco</span>
-            <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; font-weight: 700; color: #154212; margin: 0 0 8px 0;">No Alternatives Loaded</h3>
-            <p style="color: #72796e; font-size: 14px; line-height: 1.6; margin-bottom: 24px;">Please scan a food label first to retrieve organic substitutes, suggestions, and wholesale cost estimations.</p>
+            <span class="material-symbols-outlined" style="font-size: 48px; color: #154212; margin-bottom: 16px;">analytics</span>
+            <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; font-weight: 700; color: #154212; margin: 0 0 8px 0;">No Analysis Report Loaded</h3>
+            <p style="color: #72796e; font-size: 14px; line-height: 1.6; margin-bottom: 24px;">You need to scan a food label on the main page to populate and explore deep biochemical analyses.</p>
         </div>
         """, unsafe_allow_html=True)
         if st.button("Go to Ingredient Scanner 🌾", type="primary", use_container_width=True):
